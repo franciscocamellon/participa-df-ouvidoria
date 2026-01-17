@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mediação Territorial Integrada - Design System
+   Trust-first civic tech aesthetic with institutional authority */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Core palette - Deep civic blue with cyan accent */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Primary - Deep institutional blue */
+    --primary: 215 50% 23%;
+    --primary-foreground: 210 20% 98%;
+
+    /* Secondary - Lighter blue-gray */
+    --secondary: 210 25% 93%;
+    --secondary-foreground: 215 25% 25%;
+
+    /* Muted - Subtle backgrounds */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Accent - Electric cyan for interactive elements */
+    --accent: 187 85% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Action - Warm yellow for user action points */
+    --action: 45 93% 58%;
+    --action-foreground: 215 25% 15%;
+
+    /* Semantic colors */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 215 25% 15%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* UI elements */
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 187 85% 43%;
+
+    --radius: 0.625rem;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.08), 0 2px 4px -2px hsl(215 25% 15% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.08), 0 4px 6px -4px hsl(215 25% 15% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(215 25% 15% / 0.1), 0 8px 10px -6px hsl(215 25% 15% / 0.05);
+
+    /* Map marker colors */
+    --marker-zeladoria: 187 85% 43%;
+    --marker-iluminacao: 38 92% 50%;
+    --marker-descarte: 0 72% 51%;
+    --marker-mobiliario: 263 70% 50%;
+    --marker-incidente: 24 95% 53%;
+    --marker-acessibilidade: 199 89% 48%;
+    --marker-vulnerabilidade: 330 81% 60%;
+    --marker-ambiental: 142 71% 45%;
+
+    /* Sidebar - kept for compatibility */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 215 25% 9%;
+    --foreground: 210 20% 95%;
+
+    --card: 215 25% 12%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 187 85% 50%;
+    --primary-foreground: 215 25% 9%;
+
+    --secondary: 215 25% 18%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 215 25% 15%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 187 85% 50%;
+    --accent-foreground: 215 25% 9%;
+
+    --action: 45 93% 58%;
+    --action-foreground: 215 25% 9%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 215 25% 9%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 215 25% 20%;
+    --input: 215 25% 20%;
+    --ring: 187 85% 50%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', 'Source Sans 3', system-ui, sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Skip link for keyboard navigation */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md;
+  }
+}
+
+@layer components {
+  /* Map container */
+  .map-container {
+    @apply absolute inset-0;
+  }
+
+  /* Glass effect for overlays */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
+
+  .glass-dark {
+    @apply bg-background/90 backdrop-blur-lg border border-border/30;
+  }
+
+  /* Status indicator pulse */
+  .status-pulse {
+    @apply relative;
+  }
+
+  .status-pulse::before {
+    content: '';
+    @apply absolute inset-0 rounded-full animate-ping opacity-75;
+    background-color: inherit;
+  }
+
+  /* Civic badge */
+  .civic-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
+    @apply bg-accent/10 text-accent border border-accent/20;
+  }
+
+  /* Emergency disclaimer banner */
+  .emergency-disclaimer {
+    @apply px-4 py-2 text-xs text-center font-medium;
+    @apply bg-warning/10 text-warning border-b border-warning/20;
+  }
+
+  /* Map marker styles */
+  .map-marker {
+    @apply w-8 h-8 rounded-full flex items-center justify-center cursor-pointer;
+    @apply shadow-lg transition-transform duration-200 hover:scale-110;
+  }
+
+  .map-marker-user {
+    @apply bg-action text-action-foreground;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200;
+    @apply hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Trust indicator */
+  .trust-indicator {
+    @apply flex items-center gap-2 text-sm text-muted-foreground;
+  }
+
+  .trust-indicator::before {
+    content: '';
+    @apply w-2 h-2 rounded-full bg-success;
+  }
+}
+
+@layer utilities {
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Map controls positioning */
+  .map-controls {
+    @apply absolute z-10;
+  }
+
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide up animation */
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Scale in animation */
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

@@ -1,0 +1,51 @@
+package com.camelloncase.pdo.ombudsman.application.usecase;
+
+import com.camelloncase.pdo.ombudsman.api.dto.OmbudsmanCreateRequest;
+import com.camelloncase.pdo.ombudsman.application.OmbudsmanRules;
+import com.camelloncase.pdo.ombudsman.domain.Ombudsman;
+import com.camelloncase.pdo.ombudsman.infrastructure.OmbudsmanRepository;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class CreateOmbudsmanUseCase {
+
+	private final OmbudsmanRepository repository;
+	private final OmbudsmanRules rules;
+
+	public CreateOmbudsmanUseCase(OmbudsmanRepository repository, OmbudsmanRules rules) {
+		this.repository = repository;
+		this.rules = rules;
+	}
+
+	@Transactional
+	public Ombudsman execute(OmbudsmanCreateRequest req) {
+		System.out.println(req);
+		Ombudsman o = new Ombudsman();
+
+		o.setProtocolNumber(rules.normalizeProtocolNumber(req.protocolNumber()));
+		o.setCategory(req.category());
+		o.setDescription(req.description());
+		o.setUrgency(req.urgency());
+		o.setCurrentStatus(req.currentStatus());
+		o.setAnonymous(req.anonymous());
+		o.setPrivacyConsent(req.privacyConsent());
+		o.setDestinationAgencyId(req.destinationAgencyId());
+		o.setReporterIdentityId(req.reporterIdentityId());
+		o.setAttachmentIds(req.attachmentIds());
+		o.setStatusHistoryEntryIds(req.statusHistoryEntryIds());
+		o.setIzaTriageResultId(req.izaTriageResultId());
+		o.setLocation(req.location().toDomain());
+
+		rules.validateLocation(o.getLocation());
+
+		OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+		o.setCreatedAt(now);
+		o.setUpdatedAt(now);
+
+		return repository.save(o);
+	}
+}

@@ -1,0 +1,47 @@
+name: pdo
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
+
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pns_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      timeout: 3s
+      retries: 30
+      interval: 5s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  auth-service:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/pns_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JAVA_OPTS: -Xms256m -Xmx384m
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - app-network
