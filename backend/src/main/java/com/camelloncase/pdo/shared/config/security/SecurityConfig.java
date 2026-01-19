@@ -51,7 +51,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(req -> req
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/api/v1/auth/**").permitAll()
+						.requestMatchers("/api/v1/auth/**", "/api/v1/ombudsmans").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/v1/ombudsmans/by-protocol/**").permitAll()
 						.requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 						.anyRequest().authenticated()
 				)

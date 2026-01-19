@@ -16,6 +16,7 @@ public class OmbudsmanFacade {
 
 	private final CreateOmbudsmanUseCase createUseCase;
 	private final GetOmbudsmanUseCase getUseCase;
+	private final GetOmbudsmanByProtocolUseCase getOmbudsmanByProtocolUseCase;
 	private final ListOmbudsmansUseCase listUseCase;
 	private final UpdateOmbudsmanUseCase updateUseCase;
 	private final DeleteOmbudsmanUseCase deleteUseCase;
@@ -24,6 +25,7 @@ public class OmbudsmanFacade {
 	public OmbudsmanFacade(
 			CreateOmbudsmanUseCase createUseCase,
 			GetOmbudsmanUseCase getUseCase,
+			GetOmbudsmanByProtocolUseCase getOmbudsmanByProtocolUseCase,
 			ListOmbudsmansUseCase listUseCase,
 			UpdateOmbudsmanUseCase updateUseCase,
 			DeleteOmbudsmanUseCase deleteUseCase,
@@ -31,6 +33,7 @@ public class OmbudsmanFacade {
 	) {
 		this.createUseCase = createUseCase;
 		this.getUseCase = getUseCase;
+		this.getOmbudsmanByProtocolUseCase = getOmbudsmanByProtocolUseCase;
 		this.listUseCase = listUseCase;
 		this.updateUseCase = updateUseCase;
 		this.deleteUseCase = deleteUseCase;
@@ -45,14 +48,19 @@ public class OmbudsmanFacade {
 		return mapper.toResponse(getUseCase.execute(id));
 	}
 
+	public OmbudsmanResponse getByProtocol(String protocolNumber) {
+		return mapper.toResponse(getOmbudsmanByProtocolUseCase.execute(protocolNumber));
+	}
+
 	public Page<OmbudsmanResponse> list(
+			UUID reporterIdentityId,
 			String protocolNumber,
 			String category,
 			String urgency,
 			String currentStatus,
 			Pageable pageable
 	) {
-		return listUseCase.execute(protocolNumber, category, urgency, currentStatus, pageable)
+		return listUseCase.execute(reporterIdentityId, protocolNumber, category, urgency, currentStatus, pageable)
 				.map(mapper::toResponse);
 	}
 

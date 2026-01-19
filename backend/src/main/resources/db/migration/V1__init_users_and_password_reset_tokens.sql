@@ -2,11 +2,15 @@
 -- V1 - Initial schema for PostgreSQL
 --   - users
 --   - password_reset_tokens
+--   - ombudsman + collections/embeddables aligned with JPA mappings
+--   - legacy/support tables kept (reporter_identity, case_status_history_entries,
+--     destination_agencies, iza_triage_results, ombudsman_attachments)
 --   - seed data for authentication tests
 -- =====================================================================
 
+-- Extensions
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- =======================
 -- USERS TABLE
@@ -33,12 +37,11 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ(3) NULL,
 
     CONSTRAINT uq_users_email UNIQUE (email),
-    CONSTRAINT chk_users_role CHECK (role IN ('CUSTOMER', 'ADMIN')),
+    CONSTRAINT chk_users_role CHECK (role IN ('CUSTOMER', 'ADMIN', 'AGENT')),
     CONSTRAINT chk_users_status CHECK (status IN ('PENDING', 'ACTIVE', 'DISABLED'))
 );
 
 CREATE INDEX idx_users_status ON users(status);
-
 
 -- =======================
 -- PASSWORD_RESET_TOKENS
@@ -59,26 +62,44 @@ CREATE TABLE password_reset_tokens (
 
 CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
 
-
 -- =======================
--- OMBUDSMAN TABLE
+-- OMBUDSMAN TABLE (FIXED)
+--  - Aligns with:
+--    Ombudsman (@Entity)
+--    Location (@Embeddable)  -> longitude/latitude NOT NULL
+--    IzaTriageResult (@Embeddable) -> iza_* columns (including iza_confidence)
+--    attachmentIds (@ElementCollection) -> ombudsman_attachment_ids
+--    statusHistory (@ElementCollection + @OrderColumn(stage)) -> ombudsman_status_history
 -- =======================
 
 CREATE TABLE ombudsman (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
     protocol_number varchar(30),
+
     category varchar(50) NOT NULL,
     description varchar(4000) NOT NULL,
-    urgency varchar(50) NOT NULL,
-    current_status varchar(50) NOT NULL DEFAULT 'OPEN',
+    urgency varchar(50),
+    current_status varchar(50) DEFAULT 'RECEIVED',
+
     anonymous boolean,
     privacy_consent boolean NOT NULL,
+
     destination_agency_id uuid,
     reporter_identity_id uuid,
+
+    -- Kept for compatibility (extra column; JPA does not map it)
     iza_triage_result_id uuid,
 
-    longitude numeric(9,6),
-    latitude numeric(9,6),
+    -- IzaTriageResult (@Embedded)
+    iza_suggested_category varchar(50),
+    iza_suggested_agency_id uuid,
+    iza_confidence numeric(5,4),
+    iza_rationale varchar(2000),
+
+    -- Location (@Embedded) -> nullable=false in JPA
+    longitude numeric(9,6) NOT NULL,
+    latitude numeric(9,6) NOT NULL,
     approx_address varchar(255),
 
     created_at TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -88,16 +109,22 @@ CREATE TABLE ombudsman (
     CONSTRAINT chk_ombudsman_latitude_range CHECK (latitude >= -90 AND latitude <= 90)
 );
 
+-- attachmentIds (@ElementCollection List<UUID>)
 CREATE TABLE ombudsman_attachment_ids (
     ombudsman_id uuid NOT NULL REFERENCES ombudsman(id) ON DELETE CASCADE,
     attachment_id uuid NOT NULL,
     PRIMARY KEY (ombudsman_id, attachment_id)
 );
 
-CREATE TABLE ombudsman_status_history_entry_ids (
+-- statusHistory (@ElementCollection List<StatusHistoryEntry> + @OrderColumn(stage))
+CREATE TABLE ombudsman_status_history (
     ombudsman_id uuid NOT NULL REFERENCES ombudsman(id) ON DELETE CASCADE,
-    status_history_entry_id uuid NOT NULL,
-    PRIMARY KEY (ombudsman_id, status_history_entry_id)
+    stage integer NOT NULL,
+    status varchar(50) NOT NULL,
+    changed_at TIMESTAMPTZ(3) NOT NULL,
+    note varchar(1000),
+    changed_by_user_id uuid,
+    PRIMARY KEY (ombudsman_id, stage)
 );
 
 -- index_for_search (btree)
@@ -107,17 +134,16 @@ CREATE INDEX idx_ombudsman_urgency ON ombudsman (urgency);
 CREATE INDEX idx_ombudsman_current_status ON ombudsman (current_status);
 
 -- description index_for_search (full-text)
-CREATE INDEX idx_ombudsman_description_tsv ON ombudsman USING gin (to_tsvector('simple', description));
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
+CREATE INDEX idx_ombudsman_description_tsv
+    ON ombudsman USING gin (to_tsvector('simple', description));
 
 -- ============================
 -- OMBUDSMAN ATTACHMENTS TABLE
+-- (Entity Attachment - kept as you had)
 -- ============================
 
 CREATE TABLE ombudsman_attachments (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     case_id UUID NOT NULL,
     media_type VARCHAR(50) NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
@@ -139,10 +165,11 @@ CREATE INDEX IF NOT EXISTS ombudsman_attachments_transcript_trgm_idx
 
 -- ============================
 -- REPORTER IDENTITY TABLE
+-- (kept as you had)
 -- ============================
 
 CREATE TABLE reporter_identity (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     case_id UUID NOT NULL,
     full_name VARCHAR(200),
     email VARCHAR(150),
@@ -152,14 +179,16 @@ CREATE TABLE reporter_identity (
 );
 
 -- Requested: fullName index_for_search
-CREATE INDEX idx_reporter_identity_full_name_search ON reporter_identity (lower(full_name));
+CREATE INDEX idx_reporter_identity_full_name_search
+    ON reporter_identity (lower(full_name));
 
 -- ==============================
 -- CASE STATUS HISTORY TABLE
+-- (kept as you had)
 -- ==============================
 
 CREATE TABLE IF NOT EXISTS case_status_history_entries (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     case_id UUID NOT NULL,
     status VARCHAR(30) NOT NULL,
     changed_at TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -195,10 +224,11 @@ CREATE INDEX idx_destination_agencies_acronym_search
 
 -- ==============================
 -- IZA TRIAGE RESULTS TABLE
+-- (kept as you had; separate from embedded iza_* columns)
 -- ==============================
 
-create table iza_triage_results (
-    id uuid primary key,
+CREATE TABLE iza_triage_results (
+    id uuid primary key DEFAULT gen_random_uuid(),
     case_id uuid not null,
     suggested_category varchar(255),
     suggested_agency_id uuid,
@@ -208,12 +238,11 @@ create table iza_triage_results (
     updated_at TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 );
 
-create index if not exists idx_iza_triage_results_suggested_category
-    on iza_triage_results (suggested_category);
+CREATE INDEX IF NOT EXISTS idx_iza_triage_results_suggested_category
+    ON iza_triage_results (suggested_category);
 
-create index if not exists idx_iza_triage_results_confidence
-    on iza_triage_results (confidence);
-
+CREATE INDEX IF NOT EXISTS idx_iza_triage_results_confidence
+    ON iza_triage_results (confidence);
 
 -- =======================
 -- SEED DATA (AUTH TESTS)
@@ -222,11 +251,6 @@ create index if not exists idx_iza_triage_results_confidence
 -- ADMIN:   Admin@123!
 -- Maria:   Maria@123!
 -- João:    Joao@123!
--- Ana:     Ana@123!
--- Carlos:  Carlos@123!
--- Guest:   Guest@123!
--- Locked:  Locked@123!
--- Disabled: Disabled@123!
 
 INSERT INTO users (
     full_name,
@@ -274,83 +298,13 @@ INSERT INTO users (
           'João Pereira',
           'joao@softkit.local',
           '$2b$10$1d62QlVAwQA5DtWhfZuc9OIe8mtQf0D3a.HdmBkg.3gXWFvutU/7S',
-          'CUSTOMER',
-          'PENDING',
-          NULL,
+          'AGENT',
+          'ACTIVE',
+          CURRENT_TIMESTAMP(3) - INTERVAL '20 days',
           0,
           NULL,
-          NULL,
+          CURRENT_TIMESTAMP(3) - INTERVAL '4 days',
           NULL,
           CURRENT_TIMESTAMP(3) - INTERVAL '3 days',
           CURRENT_TIMESTAMP(3) - INTERVAL '3 days'
-      ),
-      (
-          'Ana Lima',
-          'ana@softkit.local',
-          '$2b$10$/e7fh8m/pEKyRH/TMqfwFuP/EynoPyDiPXHOE/5lVDNs11HAPnyGC',
-          'CUSTOMER',
-          'ACTIVE',
-          CURRENT_TIMESTAMP(3) - INTERVAL '10 days',
-          0,
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '6 hours',
-          '+5511999990003',
-          CURRENT_TIMESTAMP(3) - INTERVAL '10 days',
-          CURRENT_TIMESTAMP(3) - INTERVAL '6 hours'
-      ),
-      (
-          'Carlos Silva',
-          'carlos@softkit.local',
-          '$2b$10$oAGsPkhCLTV2zyNLD1eDNuBUNa1yzUPuqYBpzVjECKCQrE.vGft52',
-          'CUSTOMER',
-          'ACTIVE',
-          CURRENT_TIMESTAMP(3) - INTERVAL '5 days',
-          1,
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '12 hours',
-          '+5511999990004',
-          CURRENT_TIMESTAMP(3) - INTERVAL '5 days',
-          CURRENT_TIMESTAMP(3) - INTERVAL '12 hours'
-      ),
-      (
-          'Guest User',
-          'guest@softkit.local',
-          '$2b$10$hlnAEJ7F7Za.U1JhxHDQCu9QVP/NssVlk/rsOX7nBFoavmgSzO2iK',
-          'CUSTOMER',
-          'ACTIVE',
-          CURRENT_TIMESTAMP(3) - INTERVAL '1 day',
-          0,
-          NULL,
-          NULL,
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '1 day',
-          CURRENT_TIMESTAMP(3) - INTERVAL '1 day'
-      ),
-      (
-          'Locked Account',
-          'locked@softkit.local',
-          '$2b$10$MMzWd5H3bEfDNHZy0nW4O.UBiMq3Odc6Fe14pEVj63EeOAVpfhAO.',
-          'CUSTOMER',
-          'ACTIVE',
-          CURRENT_TIMESTAMP(3) - INTERVAL '30 days',
-          5,
-          CURRENT_TIMESTAMP(3) + INTERVAL '15 minutes',
-          CURRENT_TIMESTAMP(3) - INTERVAL '10 minutes',
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '30 days',
-          CURRENT_TIMESTAMP(3)
-      ),
-      (
-          'Disabled Account',
-          'disabled@softkit.local',
-          '$2b$10$uNi/9k7F/ErTNJNruo8O2eWOzORmoT0psUA6WYBoQv6W00TZsQECS',
-          'CUSTOMER',
-          'DISABLED',
-          CURRENT_TIMESTAMP(3) - INTERVAL '90 days',
-          0,
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '40 days',
-          NULL,
-          CURRENT_TIMESTAMP(3) - INTERVAL '90 days',
-          CURRENT_TIMESTAMP(3) - INTERVAL '40 days'
       );

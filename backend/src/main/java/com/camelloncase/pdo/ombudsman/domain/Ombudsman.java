@@ -20,7 +20,7 @@ public class Ombudsman {
 	@Column(name = "id", nullable = false, columnDefinition = "uuid")
 	private UUID id;
 
-	@Column(name = "protocol_number", length = 30)
+	@Column(name = "protocol_number", nullable = false, unique = true, length = 20)
 	private String protocolNumber;
 
 	@Enumerated(EnumType.STRING)
@@ -56,12 +56,12 @@ public class Ombudsman {
 	private List<UUID> attachmentIds = new ArrayList<>();
 
 	@ElementCollection
-	@CollectionTable(name = "ombudsman_status_history_entry_ids", joinColumns = @JoinColumn(name = "ombudsman_id"))
-	@Column(name = "status_history_entry_id")
-	private List<UUID> statusHistoryEntryIds = new ArrayList<>();
+	@CollectionTable(name="ombudsman_status_history", joinColumns=@JoinColumn(name="ombudsman_id"))
+	@OrderColumn(name="stage")
+	private List<StatusHistoryEntry> statusHistory = new ArrayList<>();
 
-	@Column(name = "iza_triage_result_id")
-	private UUID izaTriageResultId;
+	@Embedded
+	private IzaTriageResult izaTriageResult;
 
 	@Embedded
 	private Location location;
@@ -174,20 +174,20 @@ public class Ombudsman {
 		this.attachmentIds = (attachmentIds == null) ? new ArrayList<>() : new ArrayList<>(attachmentIds);
 	}
 
-	public List<UUID> getStatusHistoryEntryIds() {
-		return statusHistoryEntryIds;
+	public List<StatusHistoryEntry> getStatusHistory() {
+		return statusHistory;
 	}
 
-	public void setStatusHistoryEntryIds(List<UUID> statusHistoryEntryIds) {
-		this.statusHistoryEntryIds = (statusHistoryEntryIds == null) ? new ArrayList<>() : new ArrayList<>(statusHistoryEntryIds);
+	public void setStatusHistory(List<StatusHistoryEntry> statusHistoryEntryIds) {
+		this.statusHistory = (statusHistoryEntryIds == null) ? new ArrayList<>() : new ArrayList<>(statusHistoryEntryIds);
 	}
 
-	public UUID getIzaTriageResultId() {
-		return izaTriageResultId;
+	public IzaTriageResult getIzaTriageResultId() {
+		return izaTriageResult;
 	}
 
-	public void setIzaTriageResultId(UUID izaTriageResultId) {
-		this.izaTriageResultId = izaTriageResultId;
+	public void setIzaTriageResultId(IzaTriageResult izaTriageResult) {
+		this.izaTriageResult = izaTriageResult;
 	}
 
 	public Location getLocation() {
@@ -213,4 +213,23 @@ public class Ombudsman {
 	public void setUpdatedAt(OffsetDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+
+	public void changeStatus(CaseStatus newStatus, String note, UUID changedByUserId) {
+		if (newStatus == null) return;
+		if (this.currentStatus == newStatus) return;
+
+		this.currentStatus = newStatus;
+
+		if (this.statusHistory == null) {
+			this.statusHistory = new ArrayList<>();
+		}
+
+		this.statusHistory.add(new StatusHistoryEntry(
+				newStatus,
+				OffsetDateTime.now(),
+				note,
+				changedByUserId
+		));
+	}
+
 }

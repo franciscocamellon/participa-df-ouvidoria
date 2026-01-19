@@ -6,7 +6,7 @@ import com.camelloncase.pdo.ombudsman.domain.Ombudsman;
 import com.camelloncase.pdo.ombudsman.infrastructure.OmbudsmanRepository;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +26,7 @@ public class CreateOmbudsmanUseCase {
 		System.out.println(req);
 		Ombudsman o = new Ombudsman();
 
-		o.setProtocolNumber(rules.normalizeProtocolNumber(req.protocolNumber()));
+		o.setProtocolNumber(rules.nextProtocol());
 		o.setCategory(req.category());
 		o.setDescription(req.description());
 		o.setUrgency(req.urgency());
@@ -36,9 +36,10 @@ public class CreateOmbudsmanUseCase {
 		o.setDestinationAgencyId(req.destinationAgencyId());
 		o.setReporterIdentityId(req.reporterIdentityId());
 		o.setAttachmentIds(req.attachmentIds());
-		o.setStatusHistoryEntryIds(req.statusHistoryEntryIds());
-		o.setIzaTriageResultId(req.izaTriageResultId());
+		o.setIzaTriageResultId(req.izaTriageResult());
 		o.setLocation(req.location().toDomain());
+
+		o.changeStatus(o.getCurrentStatus(), "Solicitação recebida.", o.getReporterIdentityId());
 
 		rules.validateLocation(o.getLocation());
 
