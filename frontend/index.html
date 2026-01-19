@@ -2,29 +2,40 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mediação Territorial Integrada | Coordenação Urbana Cidadã</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Participa DF - Ouvidoria Mobile | Coordenação Urbana Cidadã</title>
     <meta name="description" content="Plataforma de coordenação urbana focada em confiança, transparência e retorno ao cidadão. Registre ocorrências e acompanhe o cuidado com a cidade." />
-    <meta name="author" content="Mediação Territorial Integrada" />
-    <meta name="keywords" content="mediação territorial, coordenação urbana, cidadania, ocorrências urbanas, zeladoria, Brasília" />
+    <meta name="author" content="Participa DF - Ouvidoria Mobile" />
+    <meta name="keywords" content="participa df, ouvidoria mobile, coordenação urbana, cidadania, ocorrências urbanas, zeladoria, Brasília" />
 
-    <meta property="og:title" content="Mediação Territorial Integrada" />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3a5f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MTI" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Participa DF - Ouvidoria Mobile" />
     <meta property="og:description" content="Plataforma de coordenação urbana focada em confiança, transparência e retorno ao cidadão." />
     <meta property="og:type" content="website" />
-
     <meta property="og:locale" content="pt_BR" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mediação Territorial Integrada" />
+    <meta name="twitter:title" content="Participa DF - Ouvidoria Mobile" />
     <meta name="twitter:description" content="Plataforma de coordenação urbana focada em confiança e transparência." />
 
-
+    <!-- Icons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
-    <meta name="theme-color" content="#1e3a5f" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <link rel="mask-icon" href="/favicon.ico" color="#1e3a5f" />
   </head>
 
   <body>
+    <noscript>
+      <p>Este aplicativo requer JavaScript para funcionar. Por favor, habilite o JavaScript no seu navegador.</p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

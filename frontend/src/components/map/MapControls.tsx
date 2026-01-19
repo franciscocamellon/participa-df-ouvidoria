@@ -1,5 +1,5 @@
-import { Plus, Minus, Locate } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus, Minus, Locate } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MapControlsProps {
   onZoomIn: () => void;
@@ -19,7 +19,7 @@ export function MapControls({ onZoomIn, onZoomOut, onGeolocate }: MapControlsPro
       >
         <Locate className="h-5 w-5" />
       </Button>
-      
+
       <div className="flex flex-col glass rounded-lg shadow-civic overflow-hidden">
         <Button
           variant="ghost"

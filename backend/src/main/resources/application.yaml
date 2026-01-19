@@ -38,9 +38,8 @@ spring:
 cors:
   allowed-origins:
     - http://localhost:8081
-    - http://localhost:3000
-    - http://localhost:3001
-    - http://127.0.0.1:3000
+    - http://localhost:8082
+    - https://lean-code-haven.lovable.app
   allowed-methods:
     - GET
     - POST

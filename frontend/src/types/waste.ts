@@ -1,37 +1,37 @@
 // Type definitions for waste management module
 
-export type WasteTypeId = 
-  | 'descarte_irregular'
-  | 'ponto_viciado'
-  | 'entulho_volumosos'
-  | 'organicos'
-  | 'reciclaveis_mistos'
-  | 'papel'
-  | 'plastico'
-  | 'vidro'
-  | 'metal'
-  | 'eletroeletronicos'
-  | 'outros';
+export type WasteTypeId =
+  | "descarte_irregular"
+  | "ponto_viciado"
+  | "entulho_volumosos"
+  | "organicos"
+  | "reciclaveis_mistos"
+  | "papel"
+  | "plastico"
+  | "vidro"
+  | "metal"
+  | "eletroeletronicos"
+  | "outros";
 
-export type WasteSeverityId = 'leve' | 'moderado' | 'grave' | 'critico';
+export type WasteSeverityId = "leve" | "moderado" | "grave" | "critico";
 
-export type WasteVolumeId = 'pequeno' | 'medio' | 'grande' | 'muito_grande';
+export type WasteVolumeId = "pequeno" | "medio" | "grande" | "muito_grande";
 
-export type WasteRiskId = 'nenhum' | 'baixo' | 'medio' | 'alto';
+export type WasteRiskId = "nenhum" | "baixo" | "medio" | "alto";
 
-export type WasteRecurrenceId = 'primeira_vez' | 'ocasional' | 'frequente' | 'cronico';
+export type WasteRecurrenceId = "primeira_vez" | "ocasional" | "frequente" | "cronico";
 
-export type WasteStatusId = 
-  | 'novo'
-  | 'triado'
-  | 'agendado'
-  | 'em_rota'
-  | 'coletado'
-  | 'encaminhado'
-  | 'reciclado'
-  | 'fechado';
+export type WasteStatusId =
+  | "novo"
+  | "triado"
+  | "agendado"
+  | "em_rota"
+  | "coletado"
+  | "encaminhado"
+  | "reciclado"
+  | "fechado";
 
-export type RecyclableAvailabilityId = 'imediata' | 'agendada' | 'periodica';
+export type RecyclableAvailabilityId = "imediata" | "agendada" | "periodica";
 
 export interface Coordinates {
   lng: number;
@@ -86,7 +86,7 @@ export interface RecyclableOffer {
 }
 
 export interface WasteReportFormData {
-  type: WasteTypeId | '';
+  type: WasteTypeId | "";
   description: string;
   severity: WasteSeverityId;
   volume: WasteVolumeId;
@@ -96,7 +96,7 @@ export interface WasteReportFormData {
 }
 
 export interface RecyclableOfferFormData {
-  type: WasteTypeId | '';
+  type: WasteTypeId | "";
   description: string;
   companyName: string;
   contactInfo: string;
