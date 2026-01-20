@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Accessibility, Type, Contrast, X } from "lucide-react";
+import { PersonStanding, Type, Contrast } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -101,13 +101,14 @@ export function AccessibilityPanel() {
           "bg-background/95 backdrop-blur-sm border-2 border-primary",
           "hover:bg-primary hover:text-primary-foreground",
           "focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-2",
-          "w-12 h-12"
+          "w-12 h-12",
+          "[&_svg]:w-7 [&_svg]:h-7"
         )}
         aria-label="Abrir painel de acessibilidade (Alt+A)"
         aria-haspopup="dialog"
         title="Acessibilidade (Alt+A)"
       >
-        <Accessibility className="h-5 w-5" aria-hidden="true" />
+        <PersonStanding className="h-5 w-5" aria-hidden="true" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -117,7 +118,7 @@ export function AccessibilityPanel() {
         >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Accessibility className="h-5 w-5" aria-hidden="true" />
+              <PersonStanding  size={32} className="h-5 w-5" aria-hidden="true" />
               Acessibilidade
             </DialogTitle>
             <DialogDescription id="a11y-panel-description">

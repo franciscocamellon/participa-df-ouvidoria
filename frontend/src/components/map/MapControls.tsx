@@ -1,15 +1,28 @@
-import { Plus, Minus, Locate } from "lucide-react";
+import { Plus, Minus, Locate, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MapControlsProps {
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onGeolocate: () => void;
+    onZoomIn: () => void;
+    onZoomOut: () => void;
+    onGeolocate: () => void;
+    onRefresh: () => void;
+    isRefreshing?: boolean;
 }
 
-export function MapControls({ onZoomIn, onZoomOut, onGeolocate }: MapControlsProps) {
+export function MapControls({ onZoomIn, onZoomOut, onGeolocate, onRefresh, isRefreshing }: MapControlsProps) {
   return (
-    <div className="absolute bottom-24 right-4 z-10 flex flex-col gap-2">
+    <div className="absolute top-10 right-4 z-10 flex flex-col gap-2">
+        <Button
+            variant="secondary"
+            size="icon"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="glass shadow-civic h-10 w-10"
+            aria-label="Atualizar ocorrências"
+        >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? "animate-spin" : ""}`} />
+        </Button>
+
       <Button
         variant="secondary"
         size="icon"

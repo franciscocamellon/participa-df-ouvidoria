@@ -8,6 +8,10 @@ import { MapControls } from "./MapControls";
 import { OccurrenceModal } from "@/components/occurrence/OccurrenceModal";
 import { OccurrenceDetailCard } from "@/components/occurrence/OccurrenceDetailCard";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { useOccurrencesQuery, occurrencesQueryKey } from "@/services/apiService";
+import { cacheOccurrences } from "@/services/offlineCache";
+import { mapApiOmbudsmanToOccurrence } from "@/services/occurrenceMapper";
 
 // SVG icons for each category (rendered as strings for DOM injection)
 const getCategoryIconSvg = (categoryId: string): string => {
@@ -27,16 +31,17 @@ const getCategoryIconSvg = (categoryId: string): string => {
   );
 };
 
-interface MapViewProps {
-  showCameras?: boolean;
-}
-
-export function MapView({ showCameras = false }: MapViewProps) {
+export function MapView() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const queryClient = useQueryClient();
+  const { refetch } = useOccurrencesQuery({ page: 0, size: 200 });
+
   const {
     occurrences,
     selectedOccurrence,
@@ -45,6 +50,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
     selectOccurrence,
     setIsCreating,
     setPendingCoordinates,
+    setOccurrences,
   } = useOccurrenceStore();
 
   // Initialize map
@@ -54,6 +60,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     map.current = new mapboxgl.Map({
+      attributionControl: false,
       container: mapContainer.current,
       style: mapConfig.style,
       center: [mapConfig.defaultCenter.lng, mapConfig.defaultCenter.lat],
@@ -193,6 +200,31 @@ export function MapView({ showCameras = false }: MapViewProps) {
     }
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    if (!navigator.onLine) {
+      toast.info("Você está offline. Conecte-se para atualizar.");
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: occurrencesQueryKey(0, 200) });
+      const result = await refetch();
+
+      if (result.data?.content) {
+        const mapped = result.data.content.map(mapApiOmbudsmanToOccurrence);
+        cacheOccurrences(mapped);
+        setOccurrences(mapped);
+        toast.success("Dados atualizados e cache renovado.");
+      }
+    } catch (error) {
+      console.error("Refresh failed:", error);
+      toast.error("Falha ao atualizar. Tente novamente.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, refetch, setOccurrences]);
+
   const handleCloseModal = useCallback(() => {
     setIsCreating(false);
     setPendingCoordinates(null);
@@ -207,7 +239,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
       <div ref={mapContainer} className="absolute inset-0" />
 
       {/* Map Controls */}
-      <MapControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onGeolocate={handleGeolocate} />
+      <MapControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onGeolocate={handleGeolocate} onRefresh={handleRefresh} isRefreshing={isRefreshing}/>
 
       {/* Occurrence Creation Modal */}
       {isCreating && pendingCoordinates && (

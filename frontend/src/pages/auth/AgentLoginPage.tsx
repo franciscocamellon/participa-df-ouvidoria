@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Check, Eye, EyeOff, Shield } from "lucide-react";
+import { Mail, Lock, Check, Eye, EyeOff } from "lucide-react";
 import { Input } from "../../components/ui/loginInput";
 import { Button } from "../../components/ui/loginButton";
-import { authService } from "../../services/auth";
+import { authService } from "@/services/auth.ts";
 
 const AgentLoginPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("joao@softkit.local");
+  const [password, setPassword] = useState("Joao@123!");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -65,10 +65,10 @@ const AgentLoginPage: React.FC = () => {
       {/* Main Card Container */}
       <div className="w-full max-w-[440px] bg-background rounded-2xl border border-border shadow-xl relative z-10 overflow-hidden">
         {/* Header panel */}
-        <div className="px-8 md:px-10 pt-8 pb-6 bg-gradient-to-br from-accent to-accent/80">
+        <div className="px-8 md:px-10 pt-8 pb-6 bg-gradient-to-br from-primary to-primary/80">
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-accent-foreground/10 flex items-center justify-center mb-3">
-              <Shield className="h-8 w-8 text-accent-foreground" />
+            <div className="flex flex-col items-center">
+              <img src="/assets/participadf-branca.svg" alt="Logo" className="h-9 w-auto mb-3 drop-shadow-sm"/>
             </div>
             <h1 className="text-2xl font-bold text-accent-foreground tracking-tight">Portal do Agente</h1>
             <p className="text-sm text-accent-foreground/80 mt-2 text-center">Acesso restrito a servidores públicos</p>

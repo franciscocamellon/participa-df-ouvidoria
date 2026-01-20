@@ -138,36 +138,9 @@ export const urgencyLevels = [
   },
 ] as const;
 
-// Camera sources configuration
-export const cameraSources = [
-  {
-    id: "cam-01",
-    name: "Praça Central - Vista Norte",
-    coordinates: { longitude: -47.883, latitude: -15.7935, approxAddress: "" },
-    streamUrl: null, // When null, shows fallback
-    externalUrl: "https://www.skylinewebcams.com/",
-    status: "online",
-  },
-  {
-    id: "cam-02",
-    name: "Estação de Metrô",
-    coordinates: { longitude: -47.8815, latitude: -15.795, approxAddress: "" },
-    streamUrl: null,
-    externalUrl: "https://www.skylinewebcams.com/",
-    status: "online",
-  },
-  {
-    id: "cam-03",
-    name: "Área Comercial",
-    coordinates: { longitude: -47.884, latitude: -15.7945, approxAddress: "" },
-    streamUrl: null,
-    externalUrl: "https://www.skylinewebcams.com/",
-    status: "maintenance",
-  },
-] as const;
 
 export const appInfo = {
-  name: "Participa DF - Ouvidoria Mobile",
+  name: "Participa DF - Ouvidoria",
   version: "1.0.0-pilot",
   emergencyDisclaimer:
     "Esta plataforma NÃO é canal de emergência. Em situações de risco, ligue 190 (Polícia), 193 (Bombeiros) ou 192 (SAMU).",

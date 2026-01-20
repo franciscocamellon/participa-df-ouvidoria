@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { appInfo } from "@/config/app.config";
 import { PendingSyncBadge } from "@/components/ui/PendingSyncBadge";
+import logoIcon from "/assets/logo-icon.png";
 
 type StoredUser = {
   role?: string;
@@ -63,10 +64,10 @@ export function Header() {
             className="flex items-center gap-2 text-primary font-heading font-semibold text-lg hover:opacity-80 transition-opacity"
             aria-label="Participa DF - Ir para página inicial"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
-              <MapPin className="h-4 w-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-transparent flex items-center justify-center" aria-hidden="true">
+              <img src={logoIcon} alt="" className="w-8 h-8" aria-hidden="true"/>
             </div>
-            <span className="hidden sm:inline">Participa DF</span>
+            <span className="hidden sm:inline">Participa DF - Ouvidoria</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -107,7 +108,7 @@ export function Header() {
                 {isLoggedIn ? (
                   <>
                     <User className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">Perfil</span>
+                    <span className="hidden sm:inline">{storedUser['fullName']}</span>
                   </>
                 ) : (
                   <>
