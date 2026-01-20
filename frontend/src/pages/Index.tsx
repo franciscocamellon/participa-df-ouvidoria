@@ -11,7 +11,7 @@ const Index = () => {
 
       <Header />
 
-      <main id="main-content" className="flex-1 pt-[88px] relative">
+      <main id="main-content" className="flex-1 relative">
         {/* Failed sync retry panel - shows when there are failed items */}
         <div className="absolute top-2 left-2 right-2 z-10 max-w-md">
           <FailedSyncRetry />

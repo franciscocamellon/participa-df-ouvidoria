@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Clock, FileText, Filter, Inbox, Send } from "lucide-react";
+import { CheckCircle, FileText, Filter, Inbox } from "lucide-react";
 import { useMemo, useState } from "react";
 import { occurrenceCategories, occurrenceStatuses } from "@/config/app.config.ts";
 import { Header } from "@/components/layout/Header.tsx";
@@ -115,7 +115,7 @@ const MeusRegistros = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Filtrar:</span>
@@ -148,6 +148,7 @@ const MeusRegistros = () => {
                 ))}
               </SelectContent>
             </Select>
+
           </div>
 
           {/* Loading state */}
