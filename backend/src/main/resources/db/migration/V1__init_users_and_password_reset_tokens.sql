@@ -107,9 +107,9 @@ CREATE TABLE ombudsman (
 -- attachmentIds (@ElementCollection List<UUID>)
 CREATE TABLE ombudsman_attachment_urls (
     ombudsman_id uuid NOT NULL REFERENCES ombudsman(id) ON DELETE CASCADE,
-    attachment_id uuid NOT NULL,
+    stage integer NOT NULL,
     attachment_url varchar(500) NOT NULL,
-    PRIMARY KEY (ombudsman_id, attachment_id)
+    PRIMARY KEY (ombudsman_id, stage)
 );
 
 -- statusHistory (@ElementCollection List<StatusHistoryEntry> + @OrderColumn(stage))

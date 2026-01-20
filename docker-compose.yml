@@ -5,43 +5,117 @@ networks:
     driver: bridge
 
 volumes:
-  db-data:
+  postgres-ombudsman-data:
+  pgadmin_data:
 
 services:
-  postgres-db:
+  # ==========
+  # DATABASES
+  # ==========
+  postgres-ombudsman:
     image: postgres:16-alpine
-    container_name: postgres-db
+    container_name: postgres-ombudsman
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: pns_db
+      POSTGRES_DB: ${OMBUDSMAN_DB_NAME:-ombudsman_db}
+      POSTGRES_USER: ${OMBUDSMAN_DB_USER:-ombudsman_user}
+      POSTGRES_PASSWORD: ${OMBUDSMAN_DB_PASS:-ombudsman_pass}
     ports:
       - "5433:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - postgres-ombudsman-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U ${OMBUDSMAN_DB_USER:-ombudsman_user} -d ${OMBUDSMAN_DB_NAME:-ombudsman_db}"]
+      interval: 5s
       timeout: 3s
       retries: 30
-      interval: 5s
     restart: unless-stopped
-    networks:
-      - app-network
+    networks: [ app-network ]
 
-  auth-service:
+  # ==========
+  # JAVA
+  # ==========
+  backend:
     build:
-      context: ./
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: auth-service
+    container_name: pdo-backend
+    depends_on:
+      postgres-ombudsman:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8080"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-ombudsman:5432/${OMBUDSMAN_DB_NAME:-ombudsman_db}
+      SPRING_DATASOURCE_USERNAME: ${OMBUDSMAN_DB_USER:-ombudsman_user}
+      SPRING_DATASOURCE_PASSWORD: ${OMBUDSMAN_DB_PASS:-ombudsman_pass}
+      SPRING_FLYWAY_URL: jdbc:postgresql://postgres-ombudsman:5432/${OMBUDSMAN_DB_NAME:-ombudsman_db}
+      SPRING_FLYWAY_USER: ${OMBUDSMAN_DB_USER:-ombudsman_user}
+      SPRING_FLYWAY_PASSWORD: ${OMBUDSMAN_DB_PASS:-ombudsman_pass}
+      JWT_SECRET: ${JWT_SECRET:-kKm5G2MIj9aMOK/y6v0tXpLHmv8nciqTmrLb+HlJk3k=}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8081}
     ports:
       - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/pns_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      JAVA_OPTS: -Xms256m -Xmx384m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+    networks: [ app-network ]
+
+  # ==========
+  # VITE
+  # ==========
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8081}
+        VITE_MAPBOX_ACCESS_TOKEN: ${VITE_MAPBOX_ACCESS_TOKEN:-pk.eyJ1IjoiamVhbmFsdmFyZXplIiwiYSI6ImNtaXY3Z3ZxbjF3NzIzZXEyNHViaHhidHgifQ.Pd4zhq5CF-0oPS5mW-NN9Q}
+    container_name: pdo-frontend
+    ports:
+      - "8081:80"
     depends_on:
-      postgres-db:
+      backend:
         condition: service_healthy
-    networks:
-      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost/health | grep -q '\"status\":\"UP\"' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks: [ app-network ]
+
+  # ==========
+  # PGADMIN
+  # ==========
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    depends_on:
+      postgres-ombudsman:
+        condition: service_healthy
+    env_file:
+      - ./.env.compose
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_LISTEN_PORT: "5050"
+      PGADMIN_SERVER_JSON_FILE: /pgadmin/servers.json
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./db/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./db/pgadmin/pgpass:/pgpass.source:ro
+    entrypoint: >
+      /bin/sh -lc "
+        cp /pgpass.source /var/lib/pgadmin/pgpass &&
+        chmod 600 /var/lib/pgadmin/pgpass &&
+        exec /entrypoint.sh
+      "
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
+    networks: [ app-network ]

@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Postgres ADMIN",
+      "Group": "Local",
+      "Host": "postgres-ombudsman",
+      "Port": 5432,
+      "MaintenanceDB": "ombudsman_db",
+      "Username": "ombudsman_user",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/pgpass"
+    }
+  }
+}
