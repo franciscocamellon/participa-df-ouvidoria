@@ -39,7 +39,6 @@ cors:
   allowed-origins:
     - http://localhost:8081
     - http://localhost:8082
-    - https://lean-code-haven.lovable.app
   allowed-methods:
     - GET
     - POST

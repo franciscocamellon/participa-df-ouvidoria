@@ -37,7 +37,8 @@ public record OmbudsmanCreateRequest (
 
 	UUID reporterIdentityId,
 
-	List<UUID> attachmentIds,
+	@Size(max = 4)
+	List<@Size(max = 500) String> attachmentUrls,
 
 	List<StatusHistoryEntry> statusHistory,
 

@@ -6,7 +6,6 @@ import com.camelloncase.pdo.ombudsman.domain.enums.UrgencyLevel;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -51,9 +50,9 @@ public class Ombudsman {
 	private UUID reporterIdentityId;
 
 	@ElementCollection
-	@CollectionTable(name = "ombudsman_attachment_ids", joinColumns = @JoinColumn(name = "ombudsman_id"))
-	@Column(name = "attachment_id")
-	private List<UUID> attachmentIds = new ArrayList<>();
+	@CollectionTable(name = "ombudsman_attachment_urls", joinColumns = @JoinColumn(name = "ombudsman_id"))
+	@Column(name = "attachment_url", length = 500)
+	private List<String> attachmentUrls = new ArrayList<>();
 
 	@ElementCollection
 	@CollectionTable(name="ombudsman_status_history", joinColumns=@JoinColumn(name="ombudsman_id"))
@@ -166,20 +165,16 @@ public class Ombudsman {
 		this.reporterIdentityId = reporterIdentityId;
 	}
 
-	public List<UUID> getAttachmentIds() {
-		return attachmentIds;
+	public List<String> getAttachmentUrls() {
+		return attachmentUrls;
 	}
 
-	public void setAttachmentIds(List<UUID> attachmentIds) {
-		this.attachmentIds = (attachmentIds == null) ? new ArrayList<>() : new ArrayList<>(attachmentIds);
+	public void setAttachmentUrls(List<String> attachmentUrls) {
+		this.attachmentUrls = (attachmentUrls == null) ? new ArrayList<>() : new ArrayList<>(attachmentUrls);
 	}
 
 	public List<StatusHistoryEntry> getStatusHistory() {
 		return statusHistory;
-	}
-
-	public void setStatusHistory(List<StatusHistoryEntry> statusHistoryEntryIds) {
-		this.statusHistory = (statusHistoryEntryIds == null) ? new ArrayList<>() : new ArrayList<>(statusHistoryEntryIds);
 	}
 
 	public IzaTriageResult getIzaTriageResultId() {

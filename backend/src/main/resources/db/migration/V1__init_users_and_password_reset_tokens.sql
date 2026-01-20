@@ -1,16 +1,15 @@
 -- =====================================================================
 -- V1 - Initial schema for PostgreSQL
---   - users
---   - password_reset_tokens
---   - ombudsman + collections/embeddables aligned with JPA mappings
---   - legacy/support tables kept (reporter_identity, case_status_history_entries,
---     destination_agencies, iza_triage_results, ombudsman_attachments)
---   - seed data for authentication tests
 -- =====================================================================
 
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- =======================
+-- PROTOCOL NUMBER SEQUENCE
+-- =======================
+CREATE SEQUENCE IF NOT EXISTS ombudsman_protocol_seq START 1;
 
 -- =======================
 -- USERS TABLE
@@ -25,7 +24,6 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     phone_e164 VARCHAR(20),
 
-    -- role / status como string + constraint (mapeado via @Enumerated(EnumType.STRING))
     role VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
 
@@ -75,7 +73,7 @@ CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id)
 CREATE TABLE ombudsman (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    protocol_number varchar(30),
+    protocol_number varchar(30) NOT NULL,
 
     category varchar(50) NOT NULL,
     description varchar(4000) NOT NULL,
@@ -88,16 +86,13 @@ CREATE TABLE ombudsman (
     destination_agency_id uuid,
     reporter_identity_id uuid,
 
-    -- Kept for compatibility (extra column; JPA does not map it)
     iza_triage_result_id uuid,
 
-    -- IzaTriageResult (@Embedded)
     iza_suggested_category varchar(50),
     iza_suggested_agency_id uuid,
     iza_confidence numeric(5,4),
     iza_rationale varchar(2000),
 
-    -- Location (@Embedded) -> nullable=false in JPA
     longitude numeric(9,6) NOT NULL,
     latitude numeric(9,6) NOT NULL,
     approx_address varchar(255),
@@ -110,9 +105,10 @@ CREATE TABLE ombudsman (
 );
 
 -- attachmentIds (@ElementCollection List<UUID>)
-CREATE TABLE ombudsman_attachment_ids (
+CREATE TABLE ombudsman_attachment_urls (
     ombudsman_id uuid NOT NULL REFERENCES ombudsman(id) ON DELETE CASCADE,
     attachment_id uuid NOT NULL,
+    attachment_url varchar(500) NOT NULL,
     PRIMARY KEY (ombudsman_id, attachment_id)
 );
 
@@ -128,7 +124,7 @@ CREATE TABLE ombudsman_status_history (
 );
 
 -- index_for_search (btree)
-CREATE INDEX idx_ombudsman_protocol_number ON ombudsman (protocol_number);
+CREATE UNIQUE INDEX ux_ombudsman_protocol_number ON ombudsman (protocol_number);
 CREATE INDEX idx_ombudsman_category ON ombudsman (category);
 CREATE INDEX idx_ombudsman_urgency ON ombudsman (urgency);
 CREATE INDEX idx_ombudsman_current_status ON ombudsman (current_status);
