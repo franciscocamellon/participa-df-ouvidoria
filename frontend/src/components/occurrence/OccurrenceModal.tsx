@@ -263,6 +263,12 @@ export function OccurrenceModal({ coordinates, onClose }: OccurrenceModalProps) 
       finalDescription += `\n\n[Descrição da imagem]: ${photoAltText.trim()}`;
     }
 
+    // Collect attachment URLs from photo, video, and audio previews
+    const attachmentUrls: string[] = [];
+    if (photoPreview) attachmentUrls.push(photoPreview);
+    if (videoPreview) attachmentUrls.push(videoPreview);
+    if (audioPreviewUrl) attachmentUrls.push(audioPreviewUrl);
+
     return {
       category: formData.category as never,
       description: finalDescription,
@@ -276,6 +282,7 @@ export function OccurrenceModal({ coordinates, onClose }: OccurrenceModalProps) 
         latitude: Number(coordinates.latitude.toFixed(5)),
         approxAddress: coordinates.approxAddress ?? "",
       },
+      attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : undefined,
     };
   };
 

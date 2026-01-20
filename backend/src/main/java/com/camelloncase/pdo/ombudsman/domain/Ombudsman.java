@@ -52,6 +52,7 @@ public class Ombudsman {
 	@ElementCollection
 	@CollectionTable(name = "ombudsman_attachment_urls", joinColumns = @JoinColumn(name = "ombudsman_id"))
 	@Column(name = "attachment_url", length = 500)
+	@OrderColumn(name="stage")
 	private List<String> attachmentUrls = new ArrayList<>();
 
 	@ElementCollection

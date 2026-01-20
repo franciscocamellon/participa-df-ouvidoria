@@ -5,6 +5,7 @@ import { MAPBOX_TOKEN } from "@/config/mapbox";
 import { mapConfig, occurrenceCategories } from "@/config/app.config";
 import { useOccurrenceStore } from "@/stores/occurrenceStore";
 import { MapControls } from "./MapControls";
+import { MapInstructionOverlay } from "./MapInstructionOverlay";
 import { OccurrenceModal } from "@/components/occurrence/OccurrenceModal";
 import { OccurrenceDetailCard } from "@/components/occurrence/OccurrenceDetailCard";
 import { toast } from "sonner";
@@ -38,10 +39,6 @@ export function MapView() {
 
   const [isMapReady, setIsMapReady] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const queryClient = useQueryClient();
-  const { refetch } = useOccurrencesQuery({ page: 0, size: 200 });
-
   const {
     occurrences,
     selectedOccurrence,
@@ -52,6 +49,34 @@ export function MapView() {
     setPendingCoordinates,
     setOccurrences,
   } = useOccurrenceStore();
+  
+  const queryClient = useQueryClient();
+  const { refetch } = useOccurrencesQuery({ page: 0, size: 100 });
+  
+  const handleRefresh = useCallback(async () => {
+    if (!navigator.onLine) {
+      toast.info("Você está offline. Conecte-se para atualizar.");
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: occurrencesQueryKey(0, 100) });
+      const result = await refetch();
+      
+      if (result.data?.content) {
+        const mapped = result.data.content.map(mapApiOmbudsmanToOccurrence);
+        cacheOccurrences(mapped);
+        setOccurrences(mapped);
+        toast.success("Dados atualizados e cache renovado.");
+      }
+    } catch (error) {
+      console.error("Refresh failed:", error);
+      toast.error("Falha ao atualizar. Tente novamente.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, refetch, setOccurrences]);
 
   // Initialize map
   useEffect(() => {
@@ -200,31 +225,6 @@ export function MapView() {
     }
   }, []);
 
-  const handleRefresh = useCallback(async () => {
-    if (!navigator.onLine) {
-      toast.info("Você está offline. Conecte-se para atualizar.");
-      return;
-    }
-
-    setIsRefreshing(true);
-    try {
-      await queryClient.invalidateQueries({ queryKey: occurrencesQueryKey(0, 200) });
-      const result = await refetch();
-
-      if (result.data?.content) {
-        const mapped = result.data.content.map(mapApiOmbudsmanToOccurrence);
-        cacheOccurrences(mapped);
-        setOccurrences(mapped);
-        toast.success("Dados atualizados e cache renovado.");
-      }
-    } catch (error) {
-      console.error("Refresh failed:", error);
-      toast.error("Falha ao atualizar. Tente novamente.");
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [queryClient, refetch, setOccurrences]);
-
   const handleCloseModal = useCallback(() => {
     setIsCreating(false);
     setPendingCoordinates(null);
@@ -239,7 +239,7 @@ export function MapView() {
       <div ref={mapContainer} className="absolute inset-0" />
 
       {/* Map Controls */}
-      <MapControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onGeolocate={handleGeolocate} onRefresh={handleRefresh} isRefreshing={isRefreshing}/>
+      <MapControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onGeolocate={handleGeolocate} onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
       {/* Occurrence Creation Modal */}
       {isCreating && pendingCoordinates && (
@@ -249,12 +249,8 @@ export function MapView() {
       {/* Occurrence Detail Card */}
       {selectedOccurrence && <OccurrenceDetailCard occurrence={selectedOccurrence} onClose={handleCloseDetail} />}
 
-      {/* Click instruction */}
-      {!isCreating && !selectedOccurrence && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass rounded-full px-4 py-2 text-sm text-muted-foreground animate-fade-in">
-          Clique no mapa para registrar uma ocorrência
-        </div>
-      )}
+      {/* Click instruction overlay */}
+      {!isCreating && !selectedOccurrence && <MapInstructionOverlay />}
 
       {/* Occurrence count indicator */}
       <div className="absolute top-4 left-4 glass rounded-lg px-3 py-2 text-sm">

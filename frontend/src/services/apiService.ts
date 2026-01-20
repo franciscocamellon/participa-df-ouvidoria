@@ -28,6 +28,7 @@ export type CreateOmbudsmanPayload = {
     latitude: number;
     approxAddress?: string;
   };
+  attachmentUrls?: string[];
 };
 
 export class ApiError extends Error {

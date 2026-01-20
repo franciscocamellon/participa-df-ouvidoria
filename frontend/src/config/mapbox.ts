@@ -1,15 +1,2 @@
-const getMapboxToken = (): string => {
-
-  const envToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
-  if (envToken) {
-    return envToken;
-  }
-};
-
-export const MAPBOX_TOKEN = getMapboxToken();
-
-// Validate token exists
-if (!MAPBOX_TOKEN) {
-  console.error("Mapbox access token is not configured. Please set VITE_MAPBOX_ACCESS_TOKEN environment variable.");
-}
+// Mapbox publishable token (safe for client-side use)
+export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiamVhbmFsdmFyZXplIiwiYSI6ImNtaXY3Z3ZxbjF3NzIzZXEyNHViaHhidHgifQ.Pd4zhq5CF-0oPS5mW-NN9Q';

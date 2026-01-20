@@ -7,6 +7,8 @@ import { appInfo } from "@/config/app.config";
 import { PendingSyncBadge } from "@/components/ui/PendingSyncBadge";
 import logoIcon from "/assets/logo-icon.png";
 
+const DISCLAIMER_STORAGE_KEY = "emergency-disclaimer-dismissed";
+
 type StoredUser = {
   role?: string;
 };
@@ -32,7 +34,7 @@ function getNavItems(isLoggedIn: boolean, userRole?: string) {
       { path: "/acompanhar", label: "Acompanhar solicitação", icon: Search },
     ];
   }
-  
+
   return [
     { path: "/sobre", label: "Sobre nós", icon: Info },
     { path: "/", label: "Mapa", icon: MapPin },
@@ -43,8 +45,11 @@ function getNavItems(isLoggedIn: boolean, userRole?: string) {
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDisclaimerDismissed, setIsDisclaimerDismissed] = useState(() => {
+    return sessionStorage.getItem(DISCLAIMER_STORAGE_KEY) === "true";
+  });
   const location = useLocation();
-  
+
   const storedUser = getStoredUser();
   const isLoggedIn = !!storedUser;
   const navItems = useMemo(() => getNavItems(isLoggedIn, storedUser?.role), [isLoggedIn, storedUser?.role]);
@@ -54,9 +59,14 @@ export function Header() {
     return location.pathname.startsWith(path);
   };
 
+  const handleDismissDisclaimer = () => {
+    setIsDisclaimerDismissed(true);
+    sessionStorage.setItem(DISCLAIMER_STORAGE_KEY, "true");
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50" role="banner">
-      <div className="glass border-b border-border/50">
+    <header className="relative z-50" role="banner">
+      <div className="glass shadow-md">
         <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Logo */}
           <Link
@@ -65,7 +75,7 @@ export function Header() {
             aria-label="Participa DF - Ir para página inicial"
           >
             <div className="w-8 h-8 rounded-lg bg-transparent flex items-center justify-center" aria-hidden="true">
-              <img src={logoIcon} alt="" className="w-8 h-8" aria-hidden="true"/>
+              <img src={logoIcon} alt="" className="w-8 h-8" aria-hidden="true" />
             </div>
             <span className="hidden sm:inline">Participa DF - Ouvidoria</span>
           </Link>
@@ -99,16 +109,13 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className={cn(
-                  "gap-2",
-                  (isActive("/perfil") || isActive("/login")) && "bg-accent/10 text-accent"
-                )}
+                className={cn("gap-2", (isActive("/perfil") || isActive("/login")) && "bg-accent/10 text-accent")}
                 aria-label={isLoggedIn ? "Acessar perfil" : "Fazer login"}
               >
                 {isLoggedIn ? (
                   <>
                     <User className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">{storedUser['fullName']}</span>
+                    <span className="hidden sm:inline">{storedUser["fullName"]}</span>
                   </>
                 ) : (
                   <>
@@ -129,7 +136,11 @@ export function Header() {
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
             </Button>
           </div>
         </div>
@@ -165,13 +176,23 @@ export function Header() {
       </div>
 
       {/* Emergency disclaimer */}
-      <div className="emergency-disclaimer" role="alert" aria-live="polite">
-        <span className="inline-flex items-center gap-2">
-          <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-          {appInfo.emergencyDisclaimer}
-        </span>
-      </div>
-
+      {!isDisclaimerDismissed && (
+        <div className="emergency-disclaimer" role="alert" aria-live="polite">
+          <span className="inline-flex items-center gap-2">
+            <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+            {appInfo.emergencyDisclaimer}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 ml-2 hover:bg-destructive/20 rounded-full"
+            onClick={handleDismissDisclaimer}
+            aria-label="Fechar aviso de emergência"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
     </header>
   );
 }
