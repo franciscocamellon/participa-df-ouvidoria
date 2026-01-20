@@ -1,13 +1,22 @@
 package com.camelloncase.pdo.ombudsman.application;
 
 import com.camelloncase.pdo.ombudsman.domain.Location;
+import com.camelloncase.pdo.ombudsman.domain.enums.CaseStatus;
 import com.camelloncase.pdo.shared.exception.BadRequestException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.Year;
 
 @Component
 public class OmbudsmanRules {
+
+	private final JdbcTemplate jdbc;
+
+	public OmbudsmanRules(JdbcTemplate jdbc) {
+		this.jdbc = jdbc;
+	}
 
 	public void validateLocation(Location location) {
 		if (location == null) {
@@ -42,4 +51,22 @@ public class OmbudsmanRules {
 	private String normalizeTrimmed(String value) {
 		return value == null ? "" : value.trim();
 	}
+
+	public String nextProtocol() {
+		Long seq = jdbc.queryForObject("select nextval('ombudsman_protocol_seq')", Long.class);
+		int year = Year.now().getValue();
+		return "DF-" + year + "-" + String.format("%06d", seq);
+	}
+
+	public String defaultNoteForStatus(CaseStatus status) {
+		return switch (status) {
+			case RECEIVED -> "Solicitação recebida.";
+			case TRIAGE -> "Em triagem.";
+			case FORWARDED -> "Encaminhada ao órgão responsável.";
+			case IN_EXECUTION -> "Em execução.";
+			case SCHEDULED -> "Agendada.";
+			case COMPLETED -> "Concluída.";
+		};
+	}
+
 }

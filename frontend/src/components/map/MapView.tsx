@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { MAPBOX_TOKEN } from '@/config/mapbox';
-import { mapConfig, occurrenceCategories, cameraSources } from '@/config/app.config';
-import { useOccurrenceStore } from '@/stores/occurrenceStore';
-import { MapControls } from './MapControls';
-import { OccurrenceModal } from '@/components/occurrence/OccurrenceModal';
-import { OccurrenceDetailCard } from '@/components/occurrence/OccurrenceDetailCard';
-import { CameraPanel } from '@/components/camera/CameraPanel';
-import { toast } from 'sonner';
-import type { Camera } from '@/types/occurrence';
-import {fetchOccurrencesFromApi} from "@/services/apiService.ts";
+import { useEffect, useRef, useState, useCallback } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { MAPBOX_TOKEN } from "@/config/mapbox";
+import { mapConfig, occurrenceCategories } from "@/config/app.config";
+import { useOccurrenceStore } from "@/stores/occurrenceStore";
+import { MapControls } from "./MapControls";
+import { OccurrenceModal } from "@/components/occurrence/OccurrenceModal";
+import { OccurrenceDetailCard } from "@/components/occurrence/OccurrenceDetailCard";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { useOccurrencesQuery, occurrencesQueryKey } from "@/services/apiService";
+import { cacheOccurrences } from "@/services/offlineCache";
+import { mapApiOmbudsmanToOccurrence } from "@/services/occurrenceMapper";
 
 // SVG icons for each category (rendered as strings for DOM injection)
 const getCategoryIconSvg = (categoryId: string): string => {
@@ -24,21 +25,23 @@ const getCategoryIconSvg = (categoryId: string): string => {
     VULNERABILITY: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>`,
     ENVIRONMENTAL: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19a4 4 0 0 1-2.24-7.32A3.5 3.5 0 0 1 9 6.03V6a3 3 0 1 1 6 0v.04a3.5 3.5 0 0 1 3.24 5.65A4 4 0 0 1 16 19Z"/><path d="M12 19v3"/></svg>`,
   };
-  return icons[categoryId] || `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/></svg>`;
+  return (
+    icons[categoryId] ||
+    `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/></svg>`
+  );
 };
 
-interface MapViewProps {
-  showCameras?: boolean;
-}
-
-export function MapView({ showCameras = false }: MapViewProps) {
+export function MapView() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const cameraMarkersRef = useRef<mapboxgl.Marker[]>([]);
 
   const [isMapReady, setIsMapReady] = useState(false);
-  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const queryClient = useQueryClient();
+  const { refetch } = useOccurrencesQuery({ page: 0, size: 200 });
+
   const {
     occurrences,
     selectedOccurrence,
@@ -47,6 +50,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
     selectOccurrence,
     setIsCreating,
     setPendingCoordinates,
+    setOccurrences,
   } = useOccurrenceStore();
 
   // Initialize map
@@ -56,6 +60,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     map.current = new mapboxgl.Map({
+      attributionControl: false,
       container: mapContainer.current,
       style: mapConfig.style,
       center: [mapConfig.defaultCenter.lng, mapConfig.defaultCenter.lat],
@@ -64,22 +69,21 @@ export function MapView({ showCameras = false }: MapViewProps) {
       minZoom: mapConfig.minZoom,
     });
 
-    map.current.on('load', () => {
+    map.current.on("load", () => {
       setIsMapReady(true);
     });
 
     // Handle map click for creating occurrences
-    map.current.on('click', (e) => {
+    map.current.on("click", (e) => {
       // Check if clicked on a marker by looking at the target
       const target = e.originalEvent.target as HTMLElement;
-      if (target.closest('.occurrence-marker') || target.closest('.camera-marker')) {
+      if (target.closest(".occurrence-marker") || target.closest(".camera-marker")) {
         return; // Don't create occurrence if clicking on a marker
       }
 
-      setPendingCoordinates({ longitude: e.lngLat.lng, latitude: e.lngLat.lat, approxAddress: '' });
+      setPendingCoordinates({ longitude: e.lngLat.lng, latitude: e.lngLat.lat, approxAddress: "" });
       setIsCreating(true);
       selectOccurrence(null);
-      setSelectedCamera(null);
     });
 
     return () => {
@@ -93,10 +97,10 @@ export function MapView({ showCameras = false }: MapViewProps) {
     if (!map.current || !isMapReady) return;
 
     const currentMarkerIds = new Set(markersRef.current.keys());
-    const newOccurrenceIds = new Set(occurrences.map(o => o.id));
+    const newOccurrenceIds = new Set(occurrences.map((o) => o.id));
 
     // Remove markers that no longer exist
-    currentMarkerIds.forEach(id => {
+    currentMarkerIds.forEach((id) => {
       if (!newOccurrenceIds.has(id)) {
         const marker = markersRef.current.get(id);
         marker?.remove();
@@ -119,8 +123,8 @@ export function MapView({ showCameras = false }: MapViewProps) {
       const iconSvg = getCategoryIconSvg(occurrence.category);
 
       // Create marker element
-      const el = document.createElement('div');
-      el.className = 'occurrence-marker';
+      const el = document.createElement("div");
+      el.className = "occurrence-marker";
       el.style.cssText = `
         width: 40px;
         height: 40px;
@@ -133,35 +137,34 @@ export function MapView({ showCameras = false }: MapViewProps) {
         border: 3px solid white;
         cursor: pointer;
       `;
-      
+
       // Add icon
       el.innerHTML = iconSvg;
 
       // Hover effects
-      el.addEventListener('mouseenter', () => {
-        el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.45)';
+      el.addEventListener("mouseenter", () => {
+        el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.45)";
       });
-      
-      el.addEventListener('mouseleave', () => {
-        el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.25)';
+
+      el.addEventListener("mouseleave", () => {
+        el.style.boxShadow = "0 3px 12px rgba(0,0,0,0.25)";
       });
 
       // Click handler - get fresh occurrence data
-      el.addEventListener('click', (e) => {
+      el.addEventListener("click", (e) => {
         e.stopPropagation();
         // Get the latest occurrence data from store
-        const currentOccurrence = useOccurrenceStore.getState().occurrences.find(o => o.id === occurrence.id);
+        const currentOccurrence = useOccurrenceStore.getState().occurrences.find((o) => o.id === occurrence.id);
         if (currentOccurrence) {
           selectOccurrence(currentOccurrence);
           setIsCreating(false);
-          setSelectedCamera(null);
         }
       });
 
       // Create marker at fixed geographic coordinates
-      const marker = new mapboxgl.Marker({ 
+      const marker = new mapboxgl.Marker({
         element: el,
-        anchor: 'center'
+        anchor: "center",
       })
         .setLngLat([occurrence.coordinates.longitude, occurrence.coordinates.latitude])
         .addTo(map.current!);
@@ -169,62 +172,6 @@ export function MapView({ showCameras = false }: MapViewProps) {
       markersRef.current.set(occurrence.id, marker);
     });
   }, [occurrences, isMapReady, selectOccurrence, setIsCreating]);
-
-  // Update camera markers when showCameras changes
-  useEffect(() => {
-    if (!map.current || !isMapReady) return;
-
-    // Clear existing camera markers
-    cameraMarkersRef.current.forEach((marker) => marker.remove());
-    cameraMarkersRef.current = [];
-
-    if (!showCameras) return;
-
-    // Add camera markers
-    cameraSources.forEach((camera) => {
-      const el = document.createElement('div');
-      el.className = 'camera-marker';
-      el.style.cssText = `
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background-color: ${camera.status === 'online' ? '#0891b2' : '#94a3b8'};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-        border: 3px solid white;
-        cursor: pointer;
-      `;
-      el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
-
-      el.addEventListener('mouseenter', () => {
-        el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.45)';
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.25)';
-      });
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        setSelectedCamera({
-          id: camera.id,
-          name: camera.name,
-          coordinates: camera.coordinates,
-          streamUrl: camera.streamUrl,
-          externalUrl: camera.externalUrl,
-          status: camera.status,
-        });
-        selectOccurrence(null);
-        setIsCreating(false);
-      });
-
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([camera.coordinates.longitude, camera.coordinates.latitude])
-        .addTo(map.current!);
-
-      cameraMarkersRef.current.push(marker);
-    });
-  }, [showCameras, isMapReady, selectOccurrence]);
 
   const handleZoomIn = useCallback(() => {
     map.current?.zoomIn();
@@ -235,7 +182,7 @@ export function MapView({ showCameras = false }: MapViewProps) {
   }, []);
 
   const handleGeolocate = useCallback(() => {
-    if ('geolocation' in navigator) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           map.current?.flyTo({
@@ -245,13 +192,38 @@ export function MapView({ showCameras = false }: MapViewProps) {
           });
         },
         () => {
-          toast.error('Não foi possível obter sua localização.');
-        }
+          toast.error("Não foi possível obter sua localização.");
+        },
       );
     } else {
-      toast.error('Geolocalização não suportada pelo navegador.');
+      toast.error("Geolocalização não suportada pelo navegador.");
     }
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    if (!navigator.onLine) {
+      toast.info("Você está offline. Conecte-se para atualizar.");
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: occurrencesQueryKey(0, 200) });
+      const result = await refetch();
+
+      if (result.data?.content) {
+        const mapped = result.data.content.map(mapApiOmbudsmanToOccurrence);
+        cacheOccurrences(mapped);
+        setOccurrences(mapped);
+        toast.success("Dados atualizados e cache renovado.");
+      }
+    } catch (error) {
+      console.error("Refresh failed:", error);
+      toast.error("Falha ao atualizar. Tente novamente.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, refetch, setOccurrences]);
 
   const handleCloseModal = useCallback(() => {
     setIsCreating(false);
@@ -262,47 +234,23 @@ export function MapView({ showCameras = false }: MapViewProps) {
     selectOccurrence(null);
   }, [selectOccurrence]);
 
-  const handleCloseCamera = useCallback(() => {
-    setSelectedCamera(null);
-  }, []);
-
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      
+
       {/* Map Controls */}
-      <MapControls
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onGeolocate={handleGeolocate}
-      />
+      <MapControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onGeolocate={handleGeolocate} onRefresh={handleRefresh} isRefreshing={isRefreshing}/>
 
       {/* Occurrence Creation Modal */}
       {isCreating && pendingCoordinates && (
-        <OccurrenceModal
-          coordinates={pendingCoordinates}
-          onClose={handleCloseModal}
-        />
+        <OccurrenceModal coordinates={pendingCoordinates} onClose={handleCloseModal} />
       )}
 
       {/* Occurrence Detail Card */}
-      {selectedOccurrence && (
-        <OccurrenceDetailCard
-          occurrence={selectedOccurrence}
-          onClose={handleCloseDetail}
-        />
-      )}
-
-      {/* Camera Panel */}
-      {selectedCamera && (
-        <CameraPanel
-          camera={selectedCamera}
-          onClose={handleCloseCamera}
-        />
-      )}
+      {selectedOccurrence && <OccurrenceDetailCard occurrence={selectedOccurrence} onClose={handleCloseDetail} />}
 
       {/* Click instruction */}
-      {!isCreating && !selectedOccurrence && !selectedCamera && (
+      {!isCreating && !selectedOccurrence && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass rounded-full px-4 py-2 text-sm text-muted-foreground animate-fade-in">
           Clique no mapa para registrar uma ocorrência
         </div>

@@ -1,83 +1,42 @@
 package com.camelloncase.pdo.ombudsman.domain;
 
+import com.camelloncase.pdo.ombudsman.domain.enums.CaseCategory;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
-@Entity
-@Table(
-		name = "iza_triage_results",
-		indexes = {
-				@Index(name = "idx_iza_triage_results_suggested_category", columnList = "suggested_category"),
-				@Index(name = "idx_iza_triage_results_confidence", columnList = "confidence")
-		}
-)
+@Embeddable
 public class IzaTriageResult {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
-	private UUID id;
-
-	@Column(name = "case_id", nullable = false)
-	private UUID caseId;
-
 	@Enumerated(EnumType.STRING)
-	@Column(name = "suggested_category")
+	@Column(name = "iza_suggested_category", length = 50)
 	private CaseCategory suggestedCategory;
 
-	@Column(name = "suggested_agency_id")
+	@Column(name = "iza_suggested_agency_id", columnDefinition = "uuid")
 	private UUID suggestedAgencyId;
 
-	@Column(name = "confidence", precision = 5, scale = 4)
+	@Column(name = "iza_confidence", precision = 5, scale = 4)
 	private BigDecimal confidence;
 
-	@Column(name = "rationale", length = 2000)
+	@Column(name = "iza_rationale", length = 2000)
 	private String rationale;
 
-	@Column(name = "created_at", nullable = false)
-	private OffsetDateTime createdAt;
+	protected IzaTriageResult() {}
 
-	@Column(name = "updated_at", nullable = false)
-	private OffsetDateTime updatedAt;
-
-	@PrePersist
-	public void prePersist() {
-		OffsetDateTime now = OffsetDateTime.now();
-		this.createdAt = now;
-		this.updatedAt = now;
-	}
-
-	@PreUpdate
-	public void preUpdate() {
-		this.updatedAt = OffsetDateTime.now();
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getCaseId() {
-		return caseId;
-	}
-
-	public void setCaseId(UUID caseId) {
-		this.caseId = caseId;
+	public IzaTriageResult(
+			CaseCategory suggestedCategory,
+			UUID suggestedAgencyId,
+			BigDecimal confidence,
+			String rationale
+	) {
+		this.suggestedCategory = suggestedCategory;
+		this.suggestedAgencyId = suggestedAgencyId;
+		this.confidence = confidence;
+		this.rationale = rationale;
 	}
 
 	public CaseCategory getSuggestedCategory() {
@@ -111,22 +70,4 @@ public class IzaTriageResult {
 	public void setRationale(String rationale) {
 		this.rationale = rationale;
 	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-
-	/**
-	 * Placeholder enum for suggestedCategory.
-	 * Add/adjust values to match your domain taxonomy.
-	 */
-	public enum CaseCategory {
-		UNKNOWN,
-		OTHER
-	}
 }
-

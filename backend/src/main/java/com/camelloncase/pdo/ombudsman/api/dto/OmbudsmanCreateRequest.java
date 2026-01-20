@@ -1,5 +1,7 @@
 package com.camelloncase.pdo.ombudsman.api.dto;
 
+import com.camelloncase.pdo.ombudsman.domain.IzaTriageResult;
+import com.camelloncase.pdo.ombudsman.domain.StatusHistoryEntry;
 import com.camelloncase.pdo.ombudsman.domain.enums.CaseCategory;
 import com.camelloncase.pdo.ombudsman.domain.enums.CaseStatus;
 import com.camelloncase.pdo.ombudsman.domain.enums.UrgencyLevel;
@@ -35,11 +37,12 @@ public record OmbudsmanCreateRequest (
 
 	UUID reporterIdentityId,
 
-	List<UUID> attachmentIds,
+	@Size(max = 4)
+	List<@Size(max = 500) String> attachmentUrls,
 
-	List<UUID> statusHistoryEntryIds,
+	List<StatusHistoryEntry> statusHistory,
 
-	UUID izaTriageResultId,
+	IzaTriageResult izaTriageResult,
 
 	@Valid
 	LocationRequest location

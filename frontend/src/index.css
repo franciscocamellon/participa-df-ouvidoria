@@ -1,11 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Mediação Territorial Integrada - Design System
+/* Participa DF - Ouvidoria Mobile - Design System
    Trust-first civic tech aesthetic with institutional authority */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -138,6 +138,37 @@
   }
 }
 
+/* ============================================
+   ACCESSIBILITY MODE OVERRIDES
+   ============================================ */
+
+/* Large text mode - increase base font size */
+html.a11y-large-text {
+  font-size: 118%; /* ~19px base instead of 16px */
+}
+
+html.a11y-large-text body {
+  line-height: 1.6;
+}
+
+/* High contrast mode - enhanced contrast ratios */
+html.a11y-high-contrast {
+  --muted-foreground: 215 25% 25%;
+  --foreground: 215 25% 5%;
+  --primary: 215 60% 18%;
+  --accent: 187 100% 30%;
+}
+
+html.a11y-high-contrast.dark {
+  --muted-foreground: 215 15% 75%;
+  --foreground: 210 20% 98%;
+}
+
+html.a11y-high-contrast *:focus-visible {
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 3px !important;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -145,11 +176,15 @@
 
   html {
     @apply scroll-smooth;
+    /* Base font size for scaling */
+    font-size: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif;
+    /* Minimum readable line height */
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -157,14 +192,66 @@
     @apply font-semibold tracking-tight;
   }
 
-  /* Focus styles for accessibility */
+  /* Enhanced focus styles for accessibility - WCAG 2.1 AA compliant */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    animation: focus-pulse 0.4s ease-out;
+  }
+
+  /* Buttons and interactive elements - stronger focus */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: 2px solid transparent;
+    animation: focus-pulse 0.4s ease-out;
+  }
+
+  /* Focus pulse animation keyframes */
+  @keyframes focus-pulse {
+    0% {
+      box-shadow: 0 0 0 0 hsl(var(--ring) / 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 6px hsl(var(--ring) / 0.3);
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--ring) / 0);
+    }
+  }
+
+  /* Respect reduced motion preference for focus animation */
+  @media (prefers-reduced-motion: reduce) {
+    *:focus-visible,
+    button:focus-visible,
+    a:focus-visible,
+    [role="button"]:focus-visible,
+    [tabindex]:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      animation: none;
+    }
   }
 
   /* Skip link for keyboard navigation */
   .skip-link {
-    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md;
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:font-semibold;
+    text-decoration: underline;
+  }
+
+  /* Ensure all interactive elements show cursor pointer */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
   }
 }
 
@@ -290,5 +377,37 @@
       opacity: 1;
       transform: scale(1);
     }
+  }
+}
+
+/* Reduced Motion: Disable animations for users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in,
+  .animate-ping,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
+  }
+
+  .status-pulse::before {
+    animation: none !important;
+  }
+
+  .transition-smooth,
+  .card-hover,
+  .map-marker {
+    transition: none !important;
   }
 }

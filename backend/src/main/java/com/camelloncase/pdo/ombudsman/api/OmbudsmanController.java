@@ -45,20 +45,27 @@ public class OmbudsmanController {
 		return ResponseEntity.ok(response);
 	}
 
+	@GetMapping("/by-protocol/{protocolNumber}")
+	public ResponseEntity<OmbudsmanResponse> getByProtocol(@PathVariable String protocolNumber) {
+		OmbudsmanResponse response = facade.getByProtocol(protocolNumber);
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping
 	public ResponseEntity<Page<OmbudsmanResponse>> list(
+			@RequestParam(required = false) UUID reporterIdentityId,
 			@RequestParam(required = false) String protocolNumber,
 			@RequestParam(required = false) String category,
 			@RequestParam(required = false) String urgency,
 			@RequestParam(required = false) String currentStatus,
 			@ParameterObject Pageable pageable
 	) {
-		Page<OmbudsmanResponse> response = facade.list(protocolNumber, category, urgency, currentStatus, pageable);
+		Page<OmbudsmanResponse> response = facade.list(reporterIdentityId, protocolNumber, category, urgency, currentStatus, pageable);
 		return ResponseEntity.ok(response);
 	}
 
-	@PutMapping("/{id}")
-	public ResponseEntity<OmbudsmanResponse> update(@PathVariable UUID id, @Valid @RequestBody OmbudsmanUpdateRequest req) {
+	@PutMapping("/{id}/status")
+	public ResponseEntity<OmbudsmanResponse> updateStatus(@PathVariable UUID id, @Valid @RequestBody OmbudsmanUpdateRequest req) {
 		OmbudsmanResponse response = facade.update(id, req);
 		return ResponseEntity.ok(response);
 	}

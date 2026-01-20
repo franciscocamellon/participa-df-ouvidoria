@@ -28,14 +28,17 @@ public class UpdateOmbudsmanUseCase {
 		Ombudsman existing = repository.findById(id)
 				.orElseThrow(() -> new NotFoundException("Ombudsman not found: " + id));
 
-		existing.setProtocolNumber(rules.normalizeProtocolNumber(req.protocolNumber()));
-		existing.setCurrentStatus(req.currentStatus());
+		String note = rules.normalizeOptionalText(req.statusNote());
+		if (note == null || note.isBlank()) {
+			note = rules.defaultNoteForStatus(req.currentStatus());
+		}
+
+		existing.changeStatus(req.currentStatus(), note, null);
 		existing.setDestinationAgencyId(req.destinationAgencyId());
-		existing.setStatusHistoryEntryIds(req.statusHistoryEntryIds());
 
 		rules.validateLocation(existing.getLocation());
 
-		existing.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+		existing.setUpdatedAt(OffsetDateTime.now());
 		return repository.save(existing);
 	}
 }

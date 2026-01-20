@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class ListOmbudsmansUseCase {
 
@@ -24,6 +26,7 @@ public class ListOmbudsmansUseCase {
 
 	@Transactional(readOnly = true)
 	public Page<Ombudsman> execute(
+			UUID reporterIdentityId,
 			String protocolNumber,
 			String category,
 			String urgency,
@@ -31,6 +34,7 @@ public class ListOmbudsmansUseCase {
 			Pageable pageable
 	) {
 		return repository.search(
+				reporterIdentityId,
 				rules.normalizeProtocolNumber(protocolNumber),
 				rules.normalizeOptionalText(category),
 				rules.normalizeOptionalText(urgency),
