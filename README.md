@@ -1,463 +1,178 @@
-# Mediação Territorial Integrada
+# Participa DF • Ouvidoria Mobile (PWA)
 
-Plataforma de coordenação urbana focada em confiança, transparência e retorno ao cidadão. Sistema desenvolvido para gestão de ocorrências urbanas, controle de resíduos e integração territorial.
+Aplicação web progressiva (PWA) mobile-first para registro e acompanhamento de manifestações de ouvidoria, com localização em mapa, protocolo automático, opção de anonimato e envio multicanal (texto, imagem, áudio e vídeo).
 
-![React](https://img.shields.io/badge/React-18.3.1-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?logo=vite)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css)
+## Demonstração
 
-## 📋 Índice
-
-- [Sobre o Projeto](#sobre-o-projeto)
-- [Funcionalidades](#funcionalidades)
-- [Arquitetura do Projeto](#arquitetura-do-projeto)
-- [Pré-requisitos](#pré-requisitos)
-- [Instalação](#instalação)
-- [Configuração](#configuração)
-- [Estrutura de Pastas](#estrutura-de-pastas)
-- [Componentes Principais](#componentes-principais)
-- [Gerenciamento de Estado](#gerenciamento-de-estado)
-- [Rotas da Aplicação](#rotas-da-aplicação)
-- [Design System](#design-system)
-- [Princípios de Design](#princípios-de-design)
-- [Segurança](#segurança)
-- [Scripts Disponíveis](#scripts-disponíveis)
-- [Deploy](#deploy)
-- [Contribuição](#contribuição)
-
-## Sobre o Projeto
-
-A **Mediação Territorial Integrada** é uma plataforma de tecnologia cívica ("civic tech") que visa facilitar a comunicação entre cidadãos e órgãos públicos para resolução de problemas urbanos. O sistema adota uma filosofia "trust-first" (confiança primeiro), evitando linguagem de vigilância e priorizando transparência em todas as interações.
-
-### Filosofia do Projeto
-
-- **Trust-first**: Linguagem ética, sem referências a vigilância
-- **Transparência**: Estados claros, explicações acessíveis
-- **Privacidade**: Consentimento obrigatório, dados anonimizados
-- **Acessibilidade**: Contraste WCAG AA, navegação por teclado
+- Vídeo: COLE_AQUI_O_LINK_DO_VIDEO
 
 ## Funcionalidades
 
-### 🗺️ Mapa Interativo
+- Registro de manifestação com:
+    - Categoria, descrição e nível de urgência
+    - Localização em mapa (coordenadas e endereço aproximado)
+    - Opção de envio anônimo
+    - Consentimento de privacidade
+- Protocolo automático e comprovante de envio
+- Acompanhamento por protocolo (consulta pública)
+- Histórico de status (linha do tempo)
+- Anexos multicanal:
+    - Imagem (captura/upload)
+    - Áudio (gravação)
+    - Vídeo (upload)
+- Acessibilidade:
+    - Navegação por teclado e foco visível nos fluxos principais
+    - Semântica e atributos ARIA nos componentes críticos
+    - Painel de acessibilidade (preferências de contraste/tamanho de fonte)
 
-- Visualização de ocorrências georreferenciadas
-- Registro de novas ocorrências diretamente no mapa
-- Marcadores com ícones específicos por categoria
-- Integração com Mapbox GL JS
+## Stack
 
-### 📝 Gestão de Ocorrências
+- Frontend: Vite + React + TypeScript + Tailwind + shadcn/ui
+- Runtime do frontend: Nginx (SPA + proxy para API)
+- Backend: Java 21 + Spring Boot + Spring Data JPA + Flyway
+- Banco de dados: PostgreSQL 16
+- Observabilidade: Spring Actuator
+- OpenAPI/Swagger UI: springdoc-openapi
 
-- **Categorias**: Zeladoria, iluminação, descarte irregular, mobiliário urbano, acessibilidade, vulnerabilidade social, risco ambiental
-- **Fluxo de status**: Recebido → Em triagem → Encaminhado → Em execução → Concluído → Sem ação/Programado
-- **Histórico completo**: Timeline de cada atualização
+## Arquitetura e roteamento
 
-### ♻️ Módulo de Resíduos (Lixo)
+- O frontend é servido via Nginx na porta **8081**.
+- O Nginx faz proxy de requisições **/api/** para o backend na porta **8080**.
+- A API é versionada e exposta sob **/api/v1/**.
 
-- Registro de descarte irregular
-- Ofertas de materiais recicláveis
-- Controle de coleta por cooperativas
-- Métricas de kg coletados por material
-- Workflow operacional completo
+## Execução com Docker Compose (recomendado)
 
-### 👤 Perfil do Cidadão
+### Pré-requisitos
 
-- Histórico de contribuições
-- Sistema de "contribuições verificadas"
-- Métricas de confiança (não competitivo)
+- Docker
+- Docker Compose
 
-### 📊 Dashboard
+### Variáveis de ambiente
 
-- Estatísticas gerais
-- Distribuição por categoria
-- Status das ocorrências
+Há um arquivo de referência **.env.compose** na raiz do repositório. Para utilizar os valores padrão:
 
-## Arquitetura do Projeto
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   React     │  │  Zustand    │  │  Mapbox GL  │          │
-│  │   Router    │  │   Store     │  │     JS      │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-│                                                              │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │              Shadcn/ui Components               │        │
-│  │  (Dialog, Toast, Cards, Forms, etc.)            │        │
-│  └─────────────────────────────────────────────────┘        │
-│                                                              │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │           Tailwind CSS + Design System          │        │
-│  └─────────────────────────────────────────────────┘        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Stack Tecnológico
-
-| Camada      | Tecnologia      | Versão  | Propósito             |
-| ----------- | --------------- | ------- | --------------------- |
-| Framework   | React           | 18.3.1  | UI Components         |
-| Build Tool  | Vite            | 5.x     | Bundling & Dev Server |
-| Linguagem   | TypeScript      | 5.x     | Type Safety           |
-| Estilização | Tailwind CSS    | 3.4     | Utility-first CSS     |
-| Componentes | Shadcn/ui       | -       | UI Component Library  |
-| Estado      | Zustand         | 5.0.9   | State Management      |
-| Roteamento  | React Router    | 6.30.1  | Client-side Routing   |
-| Mapas       | Mapbox GL JS    | 3.17.0  | Interactive Maps      |
-| Formulários | React Hook Form | 7.61.1  | Form Management       |
-| Validação   | Zod             | 3.25.76 | Schema Validation     |
-| Gráficos    | Recharts        | 2.15.4  | Data Visualization    |
-| Datas       | date-fns        | 3.6.0   | Date Manipulation     |
-
-## Pré-requisitos
-
-Antes de começar, certifique-se de ter instalado:
-
-- **Node.js** >= 18.0.0
-- **npm** >= 9.0.0 ou **yarn** >= 1.22.0 ou **bun** >= 1.0.0
-- **Git** >= 2.30.0
-- **Token do Mapbox** (obtenha em [mapbox.com](https://account.mapbox.com/))
-
-### Verificar Instalações
+Opção A (recomendada):
 
 ```bash
-node --version    # v18.0.0 ou superior
-npm --version     # 9.0.0 ou superior
-git --version     # 2.30.0 ou superior
+cp .env.compose .env
 ```
 
-## Instalação
-
-### 1. Clonar o Repositório
+Opção B:
 
 ```bash
-git clone https://github.com/seu-usuario/mediacao-territorial.git
-cd mediacao-territorial
+docker compose --env-file .env.compose up --build
 ```
 
-### 2. Instalar Dependências
+### Subir o ambiente
 
-**Usando npm:**
+Na raiz do repositório:
 
 ```bash
-npm install
+docker compose up --build
 ```
 
-**Usando yarn:**
+### Serviços e portas
+
+- Frontend (PWA): http://localhost:8081
+- Backend (API): http://localhost:8080
+- PostgreSQL: localhost:5433
+- pgAdmin: http://localhost:5050
+
+### Healthchecks
+
+- Frontend: `GET http://localhost:8081/health`
+- Backend: `GET http://localhost:8080/actuator/health`
+
+### Encerrar
 
 ```bash
-yarn install
+docker compose down
 ```
 
-**Usando bun:**
+## Uso (fluxo principal)
+
+1. Acesse o aplicativo em: http://localhost:8081
+2. Abra **Nova manifestação**
+3. Preencha os campos obrigatórios e selecione a localização no mapa
+4. (Opcional) Adicione anexos (imagem/áudio/vídeo)
+5. Envie a manifestação e copie o **número de protocolo**
+6. Acesse **Acompanhar** e consulte pelo protocolo para visualizar status e histórico
+
+## API
+
+Base URL (via frontend): `http://localhost:8081/api`  
+Base URL (direto no backend): `http://localhost:8080/api`
+
+### Endpoints principais (Ouvidoria)
+
+- Criar manifestação:
+    - `POST /api/v1/ombudsmans`
+- Obter por id:
+    - `GET /api/v1/ombudsmans/{id}`
+- Obter por protocolo:
+    - `GET /api/v1/ombudsmans/by-protocol/{protocolNumber}`
+- Listar (paginado):
+    - `GET /api/v1/ombudsmans?page=0&size=20&sort=createdAt,desc`
+
+### Autenticação (quando aplicável)
+
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/refresh-token`
+
+### Swagger UI
+
+- http://localhost:8080/swagger-ui/index.html
+
+## Banco de dados e migrações
+
+- Migrações são executadas via Flyway no startup do backend.
+- Os dados do PostgreSQL são persistidos em volume Docker.
+
+## Desenvolvimento local (sem Docker)
+
+### Backend
+
+Pré-requisitos:
+
+- Java 21+
+- PostgreSQL (ou ajuste para outro banco suportado)
+
+Execução:
 
 ```bash
-bun install
+cd backend
+./mvnw spring-boot:run
 ```
 
-### 3. Configurar Variáveis de Ambiente
+### Frontend
 
-Crie um arquivo `.env.local` na raiz do projeto:
+Pré-requisitos:
+
+- Node.js 20+
+
+Execução:
 
 ```bash
-cp .env.example .env.local
-```
-
-Edite o arquivo com suas configurações:
-
-```env
-# Mapbox Configuration (OBRIGATÓRIO)
-VITE_MAPBOX_ACCESS_TOKEN=seu_token_mapbox_aqui
-
-# API Configuration (opcional - para integração futura)
-VITE_API_URL=https://api.exemplo.com
-VITE_API_KEY=sua_api_key
-
-# Feature Flags (opcional)
-VITE_ENABLE_ANALYTICS=false
-VITE_DEBUG_MODE=false
-```
-
-### 4. Iniciar o Servidor de Desenvolvimento
-
-```bash
+cd frontend
+npm ci
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5173`
-
-## Configuração
-
-### Configuração Principal (`src/config/app.config.ts`)
-
-```typescript
-// Coordenadas padrão do mapa (Setor Comercial Sul, Brasília)
-export const DEFAULT_CENTER = {
-  lng: -47.8921653,
-  lat: -15.7971748,
-};
-
-// Categorias de ocorrência disponíveis
-export const OCCURRENCE_CATEGORIES = [
-  "zeladoria",
-  "iluminacao",
-  "descarte_irregular",
-  // ...
-];
-
-// Configuração de status
-export const STATUS_FLOW = [
-  "recebido",
-  "em_triagem",
-  "encaminhado",
-  // ...
-];
-```
-
-### Configuração do Mapbox (`src/config/mapbox.ts`)
-
-```typescript
-export const MAPBOX_STYLE = "mapbox://styles/mapbox/dark-v11";
-export const DEFAULT_ZOOM = 15;
-```
-
-### Configuração de Resíduos (`src/config/waste.config.ts`)
-
-```typescript
-export const WASTE_TYPES = [
-  { id: "organico", label: "Orgânico", color: "#22C55E" },
-  { id: "reciclavel", label: "Reciclável", color: "#3B82F6" },
-  // ...
-];
-```
-
-## Estrutura de Pastas
-
-```
-mediacao-territorial/
-├── public/                     # Arquivos estáticos
-│   ├── favicon.ico
-│   ├── robots.txt
-│   └── placeholder.svg
-│
-├── src/
-│   ├── assets/                 # Imagens e recursos
-│   │
-│   ├── components/             # Componentes React
-│   │   ├── ui/                 # Componentes Shadcn/ui
-│   │   │   ├── button.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── dialog.tsx
-│   │   │   └── ...
-│   │   │
-│   │   ├── layout/             # Componentes de layout
-│   │   │   └── Header.tsx
-│   │   │
-│   │   ├── map/                # Componentes do mapa
-│   │   │   ├── MapView.tsx
-│   │   │   └── MapControls.tsx
-│   │   │
-│   │   ├── occurrence/         # Componentes de ocorrências
-│   │   │   ├── OccurrenceModal.tsx
-│   │   │   └── OccurrenceDetailCard.tsx
-│   │   │
-│   │   ├── waste/              # Componentes de resíduos
-│   │   │   ├── WasteMapView.tsx
-│   │   │   ├── WasteDetailPanel.tsx
-│   │   │   ├── WasteReportModal.tsx
-│   │   │   ├── RecyclableDetailPanel.tsx
-│   │   │   └── RecyclableOfferModal.tsx
-│   │   │
-│   │   └── camera/             # Componentes de câmeras
-│   │       └── CameraPanel.tsx
-│   │
-│   ├── config/                 # Configurações
-│   │   ├── app.config.ts       # Config geral
-│   │   ├── mapbox.ts           # Config do Mapbox
-│   │   └── waste.config.ts     # Config de resíduos
-│   │
-│   ├── hooks/                  # Custom Hooks
-│   │   ├── use-mobile.tsx
-│   │   └── use-toast.ts
-│   │
-│   ├── lib/                    # Utilitários
-│   │   └── utils.ts            # Funções helper
-│   │
-│   ├── pages/                  # Páginas/Rotas
-│   │   ├── Index.tsx           # Mapa principal
-│   │   ├── Dashboard.tsx       # Dashboard
-│   │   ├── Lixo.tsx            # Módulo de resíduos
-│   │   ├── MeusRegistros.tsx   # Registros do usuário
-│   │   ├── Perfil.tsx          # Perfil
-│   │   ├── Sobre.tsx           # Sobre
-│   │   ├── Sugestoes.tsx       # Sugestões
-│   │   └── NotFound.tsx        # 404
-│   │
-│   ├── stores/                 # Estado global (Zustand)
-│   │   ├── occurrenceStore.ts  # Store de ocorrências
-│   │   └── wasteStore.ts       # Store de resíduos
-│   │
-│   ├── types/                  # Definições TypeScript
-│   │   ├── occurrence.ts       # Tipos de ocorrência
-│   │   └── waste.ts            # Tipos de resíduos
-│   │
-│   ├── App.tsx                 # Componente raiz
-│   ├── App.css                 # Estilos globais
-│   ├── index.css               # Design system/tokens
-│   ├── main.tsx                # Entry point
-│   └── vite-env.d.ts           # Tipos do Vite
-│
-├── .env.example                # Exemplo de variáveis
-├── .gitignore                  # Arquivos ignorados
-├── components.json             # Config Shadcn
-├── eslint.config.js            # Config ESLint
-├── index.html                  # HTML template
-├── package.json                # Dependências
-├── postcss.config.js           # Config PostCSS
-├── README.md                   # Documentação
-├── REQUIREMENTS.md             # Requisitos
-├── tailwind.config.ts          # Config Tailwind
-├── tsconfig.json               # Config TypeScript
-└── vite.config.ts              # Config Vite
-```
-
-## Componentes Principais
-
-### MapView (`src/components/map/MapView.tsx`)
-
-Renderiza o mapa interativo com Mapbox GL JS, gerencia marcadores de ocorrências e eventos de clique.
-
-### OccurrenceModal (`src/components/occurrence/OccurrenceModal.tsx`)
-
-Modal para registro de novas ocorrências, com formulário validado e seleção de categoria.
-
-### WasteMapView (`src/components/waste/WasteMapView.tsx`)
-
-Mapa especializado para o módulo de resíduos, com marcadores diferenciados.
-
-### Header (`src/components/layout/Header.tsx`)
-
-Navegação principal com links responsivos e tema consistente.
-
-## Gerenciamento de Estado
-
-### Zustand Stores
-
-#### occurrenceStore
-
-```typescript
-// Principais ações
-addOccurrence(occurrence); // Adicionar ocorrência
-updateOccurrenceStatus(id, status); // Atualizar status
-deleteOccurrence(id); // Remover ocorrência
-selectOccurrence(occurrence); // Selecionar para visualização
-getUserOccurrences(userId); // Filtrar por usuário
-```
-
-#### wasteStore
-
-```typescript
-// Principais ações
-addWasteReport(report); // Adicionar relatório de lixo
-addRecyclableOffer(offer); // Adicionar oferta reciclável
-updateWasteStatus(id, status); // Atualizar status
-deleteWasteReport(id); // Remover relatório
-deleteRecyclableOffer(id); // Remover oferta
-```
-
-### Persistência
-
-Ambos os stores utilizam `zustand/middleware/persist` para salvar dados no `localStorage`.
-
-## Rotas da Aplicação
-
-| Rota              | Página        | Descrição                         |
-| ----------------- | ------------- | --------------------------------- |
-| `/`               | Index         | Mapa principal de ocorrências     |
-| `/dashboard`      | Dashboard     | Estatísticas e métricas           |
-| `/lixo`           | Lixo          | Módulo de gestão de resíduos      |
-| `/meus-registros` | MeusRegistros | Histórico do usuário              |
-| `/perfil`         | Perfil        | Configurações e métricas pessoais |
-| `/sobre`          | Sobre         | Informações da plataforma         |
-| `/sugestoes`      | Sugestoes     | Envio de sugestões                |
-| `*`               | NotFound      | Página 404                        |
-
-## Design System
-
-### Cores (HSL - index.css)
-
-```css
-:root {
-  /* Base */
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-
-  /* Primária - Azul profundo (confiança) */
-  --primary: 217 91% 60%;
-  --primary-foreground: 222 47% 11%;
-
-  /* Accent - Ciano elétrico */
-  --accent: 187 100% 42%;
-
-  /* Destrutivo - Vermelho */
-  --destructive: 0 84% 60%;
-
-  /* Sucesso - Verde */
-  --success: 142 76% 36%;
-}
-```
-
-### Componentes Shadcn/ui
-
-Todos os componentes base estão em `src/components/ui/` e seguem o design system definido.
-
-## Princípios de Design
-
-1. **Trust-first**: Linguagem que transmite confiança
-2. **Transparência**: Estados claros e explicações acessíveis
-3. **Acessibilidade**: WCAG AA, navegação por teclado
-4. **Responsividade**: Mobile-first design
-5. **Não-vigilância**: Evitar terminologia de monitoramento
-
-## Segurança
-
-- ✅ Token do Mapbox em variável de ambiente
-- ✅ Sem exposição de dados sensíveis em logs
-- ✅ Consentimento de privacidade obrigatório
-- ✅ Dados anonimizados por padrão
-- ⚠️ Preparado para integração com backend seguro
-
-## Scripts Disponíveis
+Configuração recomendada no desenvolvimento (arquivo `frontend/.env.local`):
 
 ```bash
-# Desenvolvimento
-npm run dev           # Servidor de desenvolvimento
-
-# Build
-npm run build         # Build de produção
-npm run preview       # Preview do build
-
-# Qualidade
-npm run lint          # Verificar código
-npm run type-check    # Verificar tipos
+VITE_API_BASE_URL=http://localhost:8080
+VITE_MAPBOX_ACCESS_TOKEN=SEU_TOKEN
 ```
 
-## Deploy
+> Em modo dev, o frontend chama o backend diretamente; ajuste CORS no backend se necessário.
 
-### Build de Produção
+## Segurança e privacidade
 
-```bash
-npm run build
-```
-
-Os arquivos serão gerados em `dist/`.
-
-### Variáveis de Ambiente em Produção
-
-Certifique-se de configurar:
-
-- `VITE_MAPBOX_ACCESS_TOKEN`
+- O sistema permite envio anônimo.
+- Recomenda-se não inserir dados pessoais desnecessários no texto da manifestação.
+- Segredos (JWT, credenciais) devem ser substituídos por valores seguros em ambientes não locais.
 
 ### Plataformas Suportadas
 
@@ -491,4 +206,4 @@ Para dúvidas ou sugestões, abra uma issue no repositório.
 ---
 
 **Versão**: 1.0.0-pilot  
-**Última atualização**: Dezembro 2024
+**Última atualização**: Janeiro de 2026
