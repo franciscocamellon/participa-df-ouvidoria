@@ -1,38 +1,45 @@
-# Requisitos do Projeto - Mediação Territorial Integrada
+# Requisitos do Projeto - Participa DF • Ouvidoria Mobile (PWA)
 
 ## Requisitos de Sistema
 
 ### Hardware Mínimo
 - **Processador**: 2 cores, 2 GHz
 - **Memória RAM**: 4 GB
-- **Armazenamento**: 500 MB livres
+- **Armazenamento**: 2 GB livres
 - **Conexão**: Internet banda larga
 
 ### Hardware Recomendado
-- **Processador**: 4 cores, 3 GHz
+- **Processador**: 4 cores, 3 GHz (ou superior)
 - **Memória RAM**: 8 GB
-- **Armazenamento**: 1 GB SSD
+- **Armazenamento**: 5 GB SSD livres
 - **Conexão**: Internet fibra
 
 ## Requisitos de Software
 
-### Ambiente de Desenvolvimento
-
+### Ambiente de Execução (recomendado)
 | Software | Versão Mínima | Versão Recomendada | Obrigatório |
 |----------|---------------|-------------------|-------------|
-| Node.js | 18.0.0 | 20.x LTS | ✅ Sim |
-| npm | 9.0.0 | 10.x | ✅ Sim |
+| Docker | 24.x | Última estável | ✅ Sim |
+| Docker Compose | v2 | Última estável | ✅ Sim |
+
+### Ambiente de Desenvolvimento
+| Software | Versão Mínima | Versão Recomendada | Obrigatório |
+|----------|---------------|-------------------|-------------|
+| Java (JDK) | 21 | 21 (LTS) | ✅ Sim |
+| Node.js | 20.x | 20.x LTS | ✅ Sim |
+| npm | 10.x | Última estável | ✅ Sim |
 | Git | 2.30.0 | 2.40+ | ✅ Sim |
 | VS Code | - | Última | ❌ Não |
 
-### Alternativas ao npm
-- **yarn**: >= 1.22.0
-- **bun**: >= 1.0.0
-- **pnpm**: >= 8.0.0
+### Ferramentas Inclusas no Projeto
+- **Maven Wrapper** (`backend/mvnw`): dispensa instalação manual do Maven
+- **Flyway**: migrações de banco no startup do backend
 
 ## Dependências de Produção
 
-### Core Framework
+### Frontend (Vite + React + TypeScript)
+
+#### Core Framework
 ```json
 {
   "react": "^18.3.1",
@@ -41,7 +48,14 @@
 }
 ```
 
-### UI Components (Shadcn/ui + Radix)
+#### PWA
+```json
+{
+  "vite-plugin-pwa": "^0.21.2"
+}
+```
+
+#### UI Components (shadcn/ui + Radix)
 ```json
 {
   "@radix-ui/react-accordion": "^1.2.11",
@@ -74,7 +88,7 @@
 }
 ```
 
-### Mapas
+#### Mapas
 ```json
 {
   "mapbox-gl": "^3.17.0",
@@ -82,7 +96,7 @@
 }
 ```
 
-### Estado e Data Fetching
+#### Estado e Data Fetching
 ```json
 {
   "zustand": "^5.0.9",
@@ -90,7 +104,7 @@
 }
 ```
 
-### Formulários e Validação
+#### Formulários e Validação
 ```json
 {
   "react-hook-form": "^7.61.1",
@@ -99,7 +113,7 @@
 }
 ```
 
-### Utilitários de Estilo
+#### Utilitários de Estilo
 ```json
 {
   "class-variance-authority": "^0.7.1",
@@ -109,14 +123,14 @@
 }
 ```
 
-### Gráficos e Visualização
+#### Gráficos e Visualização
 ```json
 {
   "recharts": "^2.15.4"
 }
 ```
 
-### Manipulação de Datas
+#### Datas e Calendário
 ```json
 {
   "date-fns": "^3.6.0",
@@ -124,14 +138,14 @@
 }
 ```
 
-### Notificações e Feedback
+#### Notificações e Feedback
 ```json
 {
   "sonner": "^1.7.4"
 }
 ```
 
-### Outros Componentes
+#### Outros Componentes/Utilitários
 ```json
 {
   "cmdk": "^1.1.1",
@@ -144,171 +158,235 @@
 }
 ```
 
+### Backend (Java 21 + Spring Boot)
+
+#### Framework e infraestrutura (Maven)
+- Spring Boot **3.5.7**
+    - `spring-boot-starter-web`
+    - `spring-boot-starter-security`
+    - `spring-boot-starter-data-jpa`
+    - `spring-boot-starter-validation`
+    - `spring-boot-starter-actuator`
+- Banco e migrações
+    - PostgreSQL driver (runtime)
+    - Flyway (`flyway-core`, `flyway-database-postgresql`)
+- JWT
+    - `io.jsonwebtoken:jjwt-*` **0.11.5**
+- OpenAPI / Swagger UI
+    - Springdoc OpenAPI (BOM) **2.8.13**
+    - `springdoc-openapi-starter-webmvc-ui`
+- Mapeamento DTO ↔ domínio
+    - MapStruct **1.5.5.Final**
+
+#### Testes
+- `spring-boot-starter-test`
+- `spring-security-test`
+- jqwik **1.9.2**
+
 ## Dependências de Desenvolvimento
 
+### Frontend
 ```json
 {
-  "@types/node": "^20.x",
-  "@types/react": "^18.x",
-  "@types/react-dom": "^18.x",
-  "@vitejs/plugin-react-swc": "^3.x",
-  "autoprefixer": "^10.x",
-  "eslint": "^9.x",
-  "postcss": "^8.x",
-  "tailwindcss": "^3.4.x",
-  "typescript": "^5.x",
-  "vite": "^5.x"
+  "@eslint/js": "^9.21.0",
+  "@tailwindcss/typography": "^0.5.15",
+  "@types/node": "^20.17.12",
+  "@types/react": "^18.3.12",
+  "@types/react-dom": "^18.3.1",
+  "@vitejs/plugin-react-swc": "^3.7.2",
+  "autoprefixer": "^10.4.20",
+  "eslint": "^9.21.0",
+  "eslint-plugin-react-hooks": "^5.1.0",
+  "eslint-plugin-react-refresh": "^0.4.16",
+  "globals": "^15.15.0",
+  "postcss": "^8.4.47",
+  "tailwindcss": "^3.4.17",
+  "typescript": "^5.7.2",
+  "typescript-eslint": "^8.24.0",
+  "vite": "^5.4.11"
 }
 ```
+
+### Backend
+- Maven Wrapper (incluído)
+- JDK 21
 
 ## Serviços Externos
 
 ### Mapbox (Obrigatório)
-- **Tipo**: API de Mapas
-- **Uso**: Visualização do mapa interativo
-- **Configuração**: Token de acesso via variável de ambiente
-- **URL**: https://www.mapbox.com/
-- **Plano**: Free tier disponível (50.000 cargas/mês)
+- **Tipo**: API de mapas
+- **Uso**: renderização do mapa interativo (WebGL)
+- **Configuração**: token via variável de ambiente
+- **Plano**: free tier disponível
 
 ```env
 VITE_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiLi4uIiwiYSI6Ii4uLiJ9...
 ```
 
-### Backend (Futuro )
-- **Tipo**: Backend as a Service
-- **Uso**: Persistência, autenticação, APIs
-- **Status**: Preparado para integração
-
 ## Variáveis de Ambiente
 
-### Obrigatórias
+### Execução via Docker Compose (recomendado)
+
+O projeto utiliza um arquivo de referência `.env.compose` na raiz. Para rodar com os valores padrão:
+```bash
+cp .env.compose .env
+docker compose up --build
+```
+
+#### Obrigatórias
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
-| `VITE_MAPBOX_ACCESS_TOKEN` | Token de acesso do Mapbox | `pk.eyJ1...` |
+| `VITE_MAPBOX_ACCESS_TOKEN` | Token Mapbox para mapas | `pk.eyJ1...` |
 
-### Opcionais
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `VITE_API_URL` | URL da API backend | - |
-| `VITE_ENABLE_ANALYTICS` | Habilitar analytics | `false` |
-| `VITE_DEBUG_MODE` | Modo debug | `false` |
+#### Recomendadas (com padrões no `.env.compose`)
+| Variável | Descrição | Padrão (se não definido) |
+|----------|-----------|--------------------------|
+| `OMBUDSMAN_DB_NAME` | Nome do banco | `ombudsman_db` |
+| `OMBUDSMAN_DB_USER` | Usuário do banco | `ombudsman_user` |
+| `OMBUDSMAN_DB_PASS` | Senha do banco | `ombudsman_pass` |
+| `JWT_SECRET` | Segredo JWT | (definido no `.env.compose`) |
+| `JWT_EXPIRATION_MS` | Expiração JWT em ms | `3600000` |
+| `CORS_ALLOWED_ORIGINS` | Origins permitidos (CORS) | `http://localhost:8081` |
+| `VITE_API_BASE_URL` | Base URL pública do frontend | `http://localhost:8081` |
+| `PGADMIN_DEFAULT_EMAIL` | Usuário do pgAdmin | `admin@example.com` |
+| `PGADMIN_DEFAULT_PASSWORD` | Senha do pgAdmin | `admin` |
+
+### Desenvolvimento local (sem Docker)
+
+#### Frontend (opcional)
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `VITE_API_BASE_URL` | Base URL para a API | `http://localhost:8080` |
+| `VITE_MAPBOX_ACCESS_TOKEN` | Token Mapbox | `pk.eyJ1...` |
+
+#### Backend (opcional)
+Em modo local, o Spring pode ser configurado via `SPRING_DATASOURCE_*`:
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `SPRING_DATASOURCE_URL` | JDBC URL | `jdbc:postgresql://localhost:5433/ombudsman_db` |
+| `SPRING_DATASOURCE_USERNAME` | Usuário do banco | `ombudsman_user` |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do banco | `ombudsman_pass` |
+| `JWT_SECRET` | Segredo JWT | (valor seguro) |
+| `CORS_ALLOWED_ORIGINS` | Origins permitidos | `http://localhost:5173` |
 
 ## Requisitos do Navegador
 
-### Navegadores Suportados
-| Navegador | Versão Mínima |
-|-----------|---------------|
+### Navegadores suportados
+| Navegador | Versão mínima |
+|----------|----------------|
 | Chrome | 90+ |
+| Edge | 90+ |
 | Firefox | 88+ |
 | Safari | 14+ |
-| Edge | 90+ |
 
-### Recursos Necessários
+### Recursos necessários
 - JavaScript habilitado
-- Cookies habilitados
-- WebGL suportado (para Mapbox)
-- Geolocalização (opcional)
+- WebGL (para Mapbox)
+- Permissão de geolocalização (opcional)
 
 ## Instalação Completa
 
-### Passo a Passo
+### Execução com Docker Compose (recomendado)
 
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/seu-usuario/mediacao-territorial.git
-cd mediacao-territorial
+git clone <URL_DO_REPOSITORIO>
+cd participa-df-ouvidoria
 
-# 2. Instalar dependências
-npm install
+# 2. Configurar variáveis
+cp .env.compose .env
+# Ajustar VITE_MAPBOX_ACCESS_TOKEN, se necessário
 
-# 3. Configurar ambiente
-cp .env.example .env.local
-# Editar .env.local com seu token do Mapbox
-
-# 4. Verificar instalação
-npm run type-check
-npm run lint
-
-# 5. Iniciar desenvolvimento
-npm run dev
-
-# 6. Build de produção (quando pronto)
-npm run build
+# 3. Subir ambiente
+docker compose up --build
 ```
 
-### Verificação de Saúde
+Verificação:
+- Frontend: http://localhost:8081
+- Backend: http://localhost:8080/swagger-ui/index.html
+- Health: http://localhost:8080/actuator/health
 
-Após iniciar o servidor (`npm run dev`), verifique:
+### Execução local (sem Docker)
 
-1. ✅ Aplicação carrega em `http://localhost:5173`
-2. ✅ Mapa renderiza corretamente
-3. ✅ Marcadores aparecem no mapa
-4. ✅ Navegação funciona entre páginas
-5. ✅ Console sem erros críticos
+#### Backend
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+#### Frontend
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
 ## Troubleshooting
 
-### Erro: Mapa não carrega
-```
-Causa: Token do Mapbox inválido ou não configurado
-Solução: Verificar VITE_MAPBOX_ACCESS_TOKEN no .env.local
-```
+### Erro: mapa não carrega
+**Causa comum**: token Mapbox ausente ou inválido  
+**Solução**: definir `VITE_MAPBOX_ACCESS_TOKEN` no `.env`/`.env.compose`.
 
-### Erro: Dependências não instalam
-```
-Causa: Versão do Node.js incompatível
-Solução: Atualizar Node.js para v18+ LTS
-```
+### Erro: backend não conecta no banco
+**Causa comum**: porta/serviço do PostgreSQL indisponível  
+**Solução**:
+- confirmar serviços ativos: `docker compose ps`
+- checar logs: `docker compose logs -f postgres-ombudsman`
+- confirmar porta: `5433:5432` no compose
 
-### Erro: Build falha
-```
-Causa: Erros de TypeScript
-Solução: Executar npm run type-check e corrigir erros
-```
+### Erro: CORS bloqueando chamadas da UI
+**Causa comum**: origem do frontend não está liberada  
+**Solução**: ajustar `CORS_ALLOWED_ORIGINS` para o host/porta em uso.
 
-### Erro: Estilos não aplicam
-```
-Causa: PostCSS/Tailwind não configurado
-Solução: Verificar postcss.config.js e tailwind.config.ts
-```
+### Erro: Flyway falha ao iniciar
+**Causa comum**: credenciais/URL do banco divergentes  
+**Solução**: revisar `SPRING_FLYWAY_*` no `docker-compose.yml` e `.env`.
 
 ## Comandos de Referência
 
+### Docker
 ```bash
-# Desenvolvimento
-npm run dev              # Servidor de desenvolvimento
+docker compose up --build
+docker compose down
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose ps
+```
 
-# Build
-npm run build            # Build de produção
-npm run preview          # Preview do build
+### Frontend
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
 
-# Qualidade de Código
-npm run lint             # ESLint
-npm run type-check       # TypeScript check
-
-# Limpar
-rm -rf node_modules      # Remover dependências
-rm -rf dist              # Remover build
-npm cache clean --force  # Limpar cache npm
+### Backend
+```bash
+./mvnw clean package
+./mvnw test
+./mvnw spring-boot:run
 ```
 
 ## Estrutura de Arquivos de Configuração
 
 ```
-├── .env.example         # Template de variáveis
-├── .env.local           # Variáveis locais (git ignore)
-├── components.json      # Configuração Shadcn
-├── eslint.config.js     # Configuração ESLint
-├── package.json         # Dependências e scripts
-├── postcss.config.js    # Configuração PostCSS
-├── tailwind.config.ts   # Configuração Tailwind
-├── tsconfig.json        # Configuração TypeScript
-├── tsconfig.app.json    # TS config da aplicação
-├── tsconfig.node.json   # TS config do Node
-└── vite.config.ts       # Configuração Vite
+├── .env.compose
+├── docker-compose.yml
+├── backend/
+│   ├── Dockerfile
+│   ├── pom.xml
+│   └── src/main/resources/application.yaml
+└── frontend/
+    ├── Dockerfile
+    ├── package.json
+    ├── vite.config.ts
+    └── public/
+        ├── offline.html
+        └── pwa-*.png
 ```
 
 ---
 
-**Documento atualizado em**: Dezembro 2024  
-**Versão do projeto**: 1.0.0-pilot
+**Documento atualizado em**: Janeiro 2026  
+**Versão do projeto**: 1.0.0
