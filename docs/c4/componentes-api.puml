@@ -1,0 +1,39 @@
+@startuml
+title C4 - Componentes (mínimo) - API Ouvidoria
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+LAYOUT_LEFT_RIGHT()
+
+Container_Boundary(api, "API Ouvidoria (Java/Spring Boot)") {
+
+  Component(ombudsmanController, "OmbudsmanController", "REST Controller", "Endpoints de criação/consulta de manifestação e status.")
+  Component(authController, "AuthController", "REST Controller", "Login/refresh/recuperação de senha (operador).")
+
+  Component(ombudsmanService, "OmbudsmanService", "Service", "Valida payload, gera protocolo, aplica regras de anonimato, registra histórico, coordena triagem e encaminhamento.")
+  Component(statusService, "StatusHistoryService", "Service", "Registra e consulta histórico de status e transições.")
+  Component(attachmentService, "AttachmentService", "Service", "Gerencia URLs/keys de anexos e validação de anexos.")
+  Component(triageClient, "IzaTriageClient", "HTTP Client", "Integração com IZA para sugestão de categoria/órgão e confiança.")
+  Component(forwardingClient, "ForwardingClient", "HTTP Client", "Integração de encaminhamento com órgão destino.")
+  Component(security, "Security/RBAC", "Security", "Controle de acesso de endpoints e papéis.")
+  Component(validation, "Validation", "Bean Validation", "Validação de entrada e regras mínimas de negócio.")
+
+  ComponentDb(ombudsmanRepo, "OmbudsmanRepository", "JPA Repository", "Persistência de manifestações.")
+  ComponentDb(destinationRepo, "DestinationAgencyRepository", "JPA Repository", "Órgãos de destino.")
+  ComponentDb(userRepo, "UserRepository", "JPA Repository", "Usuários/operadores.")
+  ComponentDb(tokenRepo, "PasswordResetTokenRepository", "JPA Repository", "Tokens de reset de senha.")
+}
+
+Rel(ombudsmanController, ombudsmanService, "Chama")
+Rel(ombudsmanService, validation, "Valida")
+Rel(ombudsmanService, ombudsmanRepo, "CRUD")
+Rel(ombudsmanService, statusService, "Registra transições")
+Rel(statusService, ombudsmanRepo, "Atualiza status/histórico (via entidade)")
+Rel(ombudsmanService, attachmentService, "Registra URLs/keys")
+Rel(ombudsmanService, triageClient, "Solicita triagem")
+Rel(ombudsmanService, forwardingClient, "Encaminha")
+Rel(ombudsmanService, destinationRepo, "Resolve órgão destino")
+Rel(authController, security, "Autentica/autoriza")
+Rel(security, userRepo, "Carrega usuário/papéis")
+Rel(authController, tokenRepo, "Gerencia tokens")
+Rel(authController, userRepo, "CRUD usuário (auth)")
+
+@enduml

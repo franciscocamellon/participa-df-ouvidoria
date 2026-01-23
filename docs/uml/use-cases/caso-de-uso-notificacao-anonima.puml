@@ -1,0 +1,49 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Usuário" as Usuario
+actor "Sistema de Ouvidoria" as Sistema
+actor "Órgão Destino" as Orgao
+actor "Serviço de Triagem (IZA)" as Iza
+
+rectangle "Participa-DF Ouvidoria" {
+
+usecase "Enviar notificação anônima" as UC_EnviarAnon
+usecase "Preencher descrição e categoria" as UC_Preencher
+usecase "Selecionar anonimato" as UC_Anon
+usecase "Aceitar termos e consentimento" as UC_Consent
+usecase "Adicionar localização (opcional)" as UC_Loc
+usecase "Anexar evidências (opcional)" as UC_Anexo
+usecase "Validar dados e gerar protocolo" as UC_Validar
+usecase "Triar e sugerir encaminhamento" as UC_Triar
+usecase "Encaminhar para órgão competente" as UC_Encaminhar
+usecase "Confirmar envio ao usuário" as UC_Confirmar
+usecase "Consultar status por protocolo" as UC_Consultar
+usecase "Registrar histórico de status" as UC_Historico
+}
+
+Usuario --> UC_EnviarAnon
+UC_EnviarAnon .> UC_Preencher : <<include>>
+UC_EnviarAnon .> UC_Anon : <<include>>
+UC_EnviarAnon .> UC_Consent : <<include>>
+UC_EnviarAnon .> UC_Validar : <<include>>
+UC_EnviarAnon .> UC_Confirmar : <<include>>
+
+UC_EnviarAnon .> UC_Loc : <<extend>>
+UC_EnviarAnon .> UC_Anexo : <<extend>>
+
+Sistema --> UC_Validar
+Sistema --> UC_Historico
+
+UC_Validar .> UC_Triar : <<include>>
+Iza --> UC_Triar
+
+UC_Triar .> UC_Encaminhar : <<include>>
+Orgao --> UC_Encaminhar
+
+Usuario --> UC_Consultar
+UC_Consultar .> UC_Historico : <<include>>
+
+@enduml

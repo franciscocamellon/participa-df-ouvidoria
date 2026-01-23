@@ -1,0 +1,20 @@
+@startuml
+title C4 - Contexto (mínimo) - Participa-DF Ouvidoria
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+LAYOUT_LEFT_RIGHT()
+
+Person(usuario, "Cidadão/Usuário", "Registra manifestações e acompanha status via protocolo.")
+Person(operador, "Operador/Servidor", "Acompanha, altera status e encaminha manifestações (quando aplicável).")
+
+System(system, "Participa-DF Ouvidoria", "Sistema para registro e encaminhamento de manifestações, incluindo envio anônimo.")
+System_Ext(iza, "IZA (Triagem)", "Serviço externo de triagem e sugestão de categoria/órgão.")
+System_Ext(orgao, "Órgão Destino", "Órgão que recebe o encaminhamento e conduz o atendimento.")
+System_Ext(storage, "Storage de Anexos", "Armazenamento de arquivos (S3/Blob/local) acessado por URL/Key.")
+
+Rel(usuario, system, "Envia manifestação (pode ser anônima), consulta status", "HTTPS")
+Rel(operador, system, "Consulta e atualiza status, acompanha fila", "HTTPS")
+Rel(system, iza, "Solicita triagem e sugestão de encaminhamento", "HTTPS")
+Rel(system, orgao, "Encaminha manifestação e protocolo", "HTTPS")
+Rel(system, storage, "Armazena e recupera anexos (URLs/Keys)", "HTTPS")
+
+@enduml

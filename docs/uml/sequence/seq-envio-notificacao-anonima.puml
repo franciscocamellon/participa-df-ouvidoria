@@ -1,0 +1,71 @@
+@startuml
+title Envio de Notificação Anônima (Ouvidoria) - Diagrama de Sequência
+hide footbox
+skinparam shadowing false
+
+actor "Usuário" as U
+boundary "Front-end (Web/App)" as FE
+control "API Ouvidoria" as API
+control "Serviço de Validação" as VAL
+database "Banco de Dados" as DB
+control "Serviço de Upload/Storage" as ST
+control "Serviço de Triagem (IZA)" as IZA
+control "Serviço de Encaminhamento" as ENC
+participant "Órgão Destino" as ORG
+
+U -> FE: Abre formulário de ouvidoria
+FE -> API: GET /destination-agencies\n(listar órgãos/canais)
+API -> DB: Consulta órgãos ativos
+DB --> API: Lista de órgãos
+API --> FE: Lista de órgãos
+
+U -> FE: Preenche descrição/categoria\nmarca "Anônimo"\naceita consentimento
+opt Adiciona localização (opcional)
+  U -> FE: Informa localização/endereçamento aproximado
+end
+opt Adiciona anexos (opcional)
+  U -> FE: Seleciona arquivos
+  FE -> ST: Upload de anexos (1..N)
+  ST --> FE: URLs/keys dos anexos
+end
+
+FE -> API: POST /ombudsman\n(payload + anonymous=true + anexos?)
+API -> VAL: Validar payload (campos obrigatórios,\nconsentimento, tamanho/URLs)
+VAL --> API: OK / Erros
+
+alt Payload inválido
+  API --> FE: 400 Bad Request + lista de erros
+  FE --> U: Exibe erros para correção
+else Payload válido
+  API -> DB: INSERT Ombudsman\n(status=RECEIVED)\n(iza_* embutido, location embutido)
+  DB --> API: id gerado
+
+  opt Persistir URLs de anexos
+    API -> DB: INSERT OmbudsmanAttachmentUrls (1..N)
+    DB --> API: OK
+  end
+
+  API -> DB: INSERT OmbudsmanStatusHistory\n(status=RECEIVED, changed_at=now)
+  DB --> API: OK
+
+  API -> IZA: Triar descrição/categoria/local\n(sugerir órgão/categoria)
+  IZA --> API: Sugestão + confiança + justificativa
+
+  API -> DB: UPDATE Ombudsman\nset iza_suggested_*, iza_confidence, iza_rationale
+  DB --> API: OK
+
+  API -> ENC: Definir órgão destino final\n(regra: escolhido pelo usuário ou sugerido pela IZA)
+  ENC -> ORG: Encaminhar protocolo + dados mínimos\n(sem identidade do usuário)
+  ORG --> ENC: Confirma recebimento
+
+  API -> DB: UPDATE Ombudsman\nset current_status=FORWARDED,\ndestination_agency_id=...
+  DB --> API: OK
+
+  API -> DB: INSERT OmbudsmanStatusHistory\n(status=FORWARDED, note, changed_at=now)
+  DB --> API: OK
+
+  API --> FE: 201 Created\nprotocol_number + status
+  FE --> U: Exibe confirmação + protocolo
+end
+
+@enduml

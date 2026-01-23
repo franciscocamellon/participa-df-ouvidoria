@@ -1,0 +1,28 @@
+@startuml
+title C4 - Containers (mínimo) - Participa-DF Ouvidoria
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+LAYOUT_LEFT_RIGHT()
+
+Person(usuario, "Cidadão/Usuário")
+Person(operador, "Operador/Servidor")
+
+System_Boundary(s1, "Participa-DF Ouvidoria") {
+  Container(web, "Front-end Web/App", "SPA (React/Next/etc.)", "Formulários, consulta por protocolo, autenticação do operador.")
+  Container(api, "API Ouvidoria", "Java/Spring Boot", "Regras de negócio, validação, geração de protocolo, persistência, triagem e encaminhamento.")
+  ContainerDb(db, "Banco de Dados", "PostgreSQL", "Persistência de usuários, manifestações, histórico e URLs de anexos.")
+}
+
+System_Ext(iza, "IZA (Triagem)", "Serviço Externo", "Sugere categoria/órgão e confiança.")
+System_Ext(orgao, "Órgão Destino", "Sistema Externo", "Recebe encaminhamento.")
+System_Ext(storage, "Storage de Anexos", "S3/Blob/local", "Armazena arquivos e fornece URL/Key.")
+
+Rel(usuario, web, "Cria manifestação (anônima ou identificada)\nconsulta status por protocolo", "HTTPS")
+Rel(operador, web, "Gerencia manifestações e status", "HTTPS")
+
+Rel(web, api, "Chamadas REST/JSON", "HTTPS")
+Rel(api, db, "CRUD + migrações", "JDBC/JPA")
+Rel(api, iza, "Triagem (texto -> sugestão)", "HTTPS")
+Rel(api, orgao, "Encaminhamento", "HTTPS")
+Rel(api, storage, "Upload/Download de anexos", "HTTPS")
+
+@enduml

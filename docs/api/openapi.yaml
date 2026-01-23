@@ -1,0 +1,1118 @@
+openapi: 3.1.0
+info:
+  title: Participa-DF Ouvidoria API
+  version: 1.0.0
+  description: >
+    Especificação OpenAPI para o backend do Participa-DF Ouvidoria.
+    Inclui autenticação JWT, usuários e manifestações (ombudsmans).
+
+servers:
+  - url: http://localhost:8080
+    description: Ambiente local
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Ombudsmans
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login e emissão de token JWT
+      operationId: authLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              exemplo:
+                value:
+                  email: "admin@exemplo.com"
+                  password: "Senha123"
+      responses:
+        "200":
+          description: Login realizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Cadastro de usuário (registro público)
+      operationId: authRegister
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Usuário registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "409":
+          $ref: "#/components/responses/ProblemDetail409"
+
+  /api/v1/auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Renovação do token (via Authorization header)
+      operationId: authRefreshToken
+      security: []
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: "Bearer <token>"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token renovado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Solicita reset de senha (gera token)
+      operationId: authForgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "204":
+          description: Solicitação aceita (sem conteúdo)
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+
+  /api/v1/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reseta a senha usando token
+      operationId: authResetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "204":
+          description: Senha alterada
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: Lista usuários (ADMIN)
+      operationId: usersList
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses:
+        "200":
+          description: Página de usuários
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageUserResponse"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+
+    post:
+      tags: [Users]
+      summary: Cria usuário (ADMIN)
+      operationId: usersCreate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+      responses:
+        "201":
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "409":
+          $ref: "#/components/responses/ProblemDetail409"
+
+  /api/v1/users/{id}:
+    get:
+      tags: [Users]
+      summary: Busca usuário por ID (ADMIN)
+      operationId: usersGetById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+    put:
+      tags: [Users]
+      summary: Atualiza usuário (ADMIN ou o próprio usuário)
+      operationId: usersUpdate
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequest"
+      responses:
+        "200":
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+    delete:
+      tags: [Users]
+      summary: Soft delete do usuário (ADMIN)
+      operationId: usersSoftDelete
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "204":
+          description: Usuário marcado como deletado/inativo
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+  /api/v1/users/{id}/status:
+    patch:
+      tags: [Users]
+      summary: Atualiza status do usuário (ADMIN)
+      operationId: usersUpdateStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusRequest"
+      responses:
+        "200":
+          description: Status atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Retorna o usuário autenticado
+      operationId: usersMe
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Perfil do usuário atual
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+
+    put:
+      tags: [Users]
+      summary: Atualiza perfil do usuário autenticado
+      operationId: usersUpdateMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSelfUpdateRequest"
+      responses:
+        "200":
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+
+  /api/v1/users/me/change-password:
+    post:
+      tags: [Users]
+      summary: Troca senha do usuário autenticado
+      operationId: usersChangePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "204":
+          description: Senha alterada
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+
+  /api/v1/ombudsmans:
+    post:
+      tags: [Ombudsmans]
+      summary: Cria manifestação (permitido sem autenticação)
+      operationId: ombudsmansCreate
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OmbudsmanCreateRequest"
+            examples:
+              anonimo:
+                value:
+                  category: "INCIDENT"
+                  description: "Buraco grande na via, risco de acidente."
+                  urgency: "HIGH"
+                  anonymous: true
+                  privacyConsent: true
+                  attachmentUrls:
+                    - "https://storage.exemplo.com/a1.jpg"
+                  location:
+                    longitude: -47.882123
+                    latitude: -15.794321
+                    approxAddress: "Próximo ao Eixo Monumental"
+      responses:
+        "201":
+          description: Manifestação criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmbudsmanResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "409":
+          $ref: "#/components/responses/ProblemDetail409"
+
+    get:
+      tags: [Ombudsmans]
+      summary: Lista manifestações (permitido sem autenticação no backend atual)
+      operationId: ombudsmansList
+      security: []
+      parameters:
+        - name: reporterIdentityId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: protocolNumber
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 30
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: urgency
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: currentStatus
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - $ref: "#/components/parameters/Sort"
+      responses:
+        "200":
+          description: Página de manifestações
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageOmbudsmanResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+
+  /api/v1/ombudsmans/{id}:
+    get:
+      tags: [Ombudsmans]
+      summary: Busca manifestação por ID (requer autenticação)
+      operationId: ombudsmansGet
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OmbudsmanId"
+      responses:
+        "200":
+          description: Manifestação encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmbudsmanResponse"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+    delete:
+      tags: [Ombudsmans]
+      summary: Remove manifestação por ID (requer autenticação)
+      operationId: ombudsmansDelete
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OmbudsmanId"
+      responses:
+        "204":
+          description: Removido
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+  /api/v1/ombudsmans/by-protocol/{protocolNumber}:
+    get:
+      tags: [Ombudsmans]
+      summary: Busca manifestação por protocolo (permitido sem autenticação)
+      operationId: ombudsmansGetByProtocol
+      security: []
+      parameters:
+        - name: protocolNumber
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 30
+      responses:
+        "200":
+          description: Manifestação encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmbudsmanResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+  /api/v1/ombudsmans/{id}/status:
+    put:
+      tags: [Ombudsmans]
+      summary: Atualiza status da manifestação (requer autenticação)
+      operationId: ombudsmansUpdateStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OmbudsmanId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OmbudsmanUpdateRequest"
+      responses:
+        "200":
+          description: Status atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmbudsmanResponse"
+        "400":
+          $ref: "#/components/responses/ProblemDetail400"
+        "401":
+          $ref: "#/components/responses/ProblemDetail401"
+        "403":
+          $ref: "#/components/responses/ProblemDetail403"
+        "404":
+          $ref: "#/components/responses/ProblemDetail404"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    OmbudsmanId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    Page:
+      name: page
+      in: query
+      required: false
+      description: Página (0-based)
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    Size:
+      name: size
+      in: query
+      required: false
+      description: Tamanho da página
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+
+    Sort:
+      name: sort
+      in: query
+      required: false
+      description: "Ordenação: campo,(asc|desc). Pode repetir."
+      schema:
+        type: array
+        items:
+          type: string
+        example: ["createdAt,desc"]
+
+  responses:
+    ProblemDetail400:
+      description: Requisição inválida (validação/JSON inválido)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ProblemDetail401:
+      description: Não autenticado
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ProblemDetail403:
+      description: Acesso negado
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ProblemDetail404:
+      description: Não encontrado
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ProblemDetail409:
+      description: Conflito (duplicidade/integridade)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+  schemas:
+    ProblemDetail:
+      type: object
+      description: >
+        Modelo compatível com Spring ProblemDetail (RFC 7807) com propriedades extras.
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+        path:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+        field:
+          type: string
+          nullable: true
+          description: Campo em conflito (quando aplicável)
+        errors:
+          description: Lista de erros de validação (quando aplicável)
+          oneOf:
+            - type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+            - type: object
+              additionalProperties:
+                type: string
+
+    # ========= Auth =========
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        password:
+          type: string
+          minLength: 1
+
+    LoginResponse:
+      type: object
+      required: [token, tokenType, expiresIn, user]
+      properties:
+        token:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          format: int64
+        user:
+          $ref: "#/components/schemas/UserResponse"
+
+    RegisterRequest:
+      type: object
+      required: [fullName, email, password]
+      properties:
+        fullName:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        phoneE164:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+          minLength: 8
+          maxLength: 255
+          pattern: "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{8,}$"
+
+    RegisterResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneE164:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 150
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword, confirmNewPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 255
+          pattern: "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{8,}$"
+        confirmNewPassword:
+          type: string
+
+    # ========= Users =========
+    Role:
+      type: string
+      enum: [ADMIN, AGENT, CUSTOMER]
+
+    UserStatus:
+      type: string
+      enum: [PENDING, ACTIVE, DISABLED]
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneE164:
+          type: string
+          nullable: true
+        role:
+          $ref: "#/components/schemas/Role"
+        status:
+          $ref: "#/components/schemas/UserStatus"
+        emailVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    UserCreateRequest:
+      type: object
+      required: [fullName, email, phoneE164, password]
+      properties:
+        fullName:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        phoneE164:
+          type: string
+          maxLength: 20
+        password:
+          type: string
+          minLength: 8
+          maxLength: 255
+          pattern: "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{8,}$"
+
+    UserUpdateRequest:
+      type: object
+      required: [fullName, email, phoneE164]
+      properties:
+        fullName:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          maxLength: 150
+        phoneE164:
+          type: string
+          maxLength: 20
+
+    UserSelfUpdateRequest:
+      type: object
+      required: [fullName, phoneE164]
+      properties:
+        fullName:
+          type: string
+        phoneE164:
+          type: string
+
+    UpdateUserStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/UserStatus"
+
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmNewPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 255
+          pattern: "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).{8,}$"
+        confirmNewPassword:
+          type: string
+
+    # ========= Ombudsmans =========
+    CaseCategory:
+      type: string
+      enum:
+        - URBAN_MAINTENANCE
+        - LIGHTING
+        - WASTE_DISPOSAL
+        - URBAN_FURNITURE
+        - INCIDENT
+        - ACCESSIBILITY
+        - VULNERABILITY
+        - ENVIRONMENTAL
+
+    UrgencyLevel:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+
+    CaseStatus:
+      type: string
+      enum: [RECEIVED, TRIAGE, FORWARDED, IN_EXECUTION, COMPLETED, SCHEDULED]
+
+    StatusHistoryEntry:
+      type: object
+      required: [status, changedAt]
+      properties:
+        status:
+          $ref: "#/components/schemas/CaseStatus"
+        changedAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+          maxLength: 1000
+          nullable: true
+        changedByUserId:
+          type: string
+          format: uuid
+          nullable: true
+
+    IzaTriageResult:
+      type: object
+      properties:
+        suggestedCategory:
+          $ref: "#/components/schemas/CaseCategory"
+        suggestedAgencyId:
+          type: string
+          format: uuid
+          nullable: true
+        confidence:
+          type: number
+          nullable: true
+          description: "0..1 (precisão depende da implementação do serviço)"
+        rationale:
+          type: string
+          maxLength: 2000
+          nullable: true
+
+    LocationRequest:
+      type: object
+      required: [longitude, latitude]
+      properties:
+        longitude:
+          type: number
+          description: "BigDecimal (precision 9, scale 6)"
+        latitude:
+          type: number
+          description: "BigDecimal (precision 9, scale 6)"
+        approxAddress:
+          type: string
+          maxLength: 255
+          nullable: true
+
+    LocationResponse:
+      type: object
+      properties:
+        longitude:
+          type: number
+        latitude:
+          type: number
+        approxAddress:
+          type: string
+          nullable: true
+
+    OmbudsmanCreateRequest:
+      type: object
+      required: [category, description, privacyConsent]
+      properties:
+        protocolNumber:
+          type: string
+          maxLength: 30
+          nullable: true
+        category:
+          $ref: "#/components/schemas/CaseCategory"
+        description:
+          type: string
+          maxLength: 4000
+        urgency:
+          $ref: "#/components/schemas/UrgencyLevel"
+        currentStatus:
+          $ref: "#/components/schemas/CaseStatus"
+        anonymous:
+          type: boolean
+          nullable: true
+        privacyConsent:
+          type: boolean
+        destinationAgencyId:
+          type: string
+          format: uuid
+          nullable: true
+        reporterIdentityId:
+          type: string
+          format: uuid
+          nullable: true
+        attachmentUrls:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            maxLength: 500
+          nullable: true
+        statusHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusHistoryEntry"
+          nullable: true
+        izaTriageResult:
+          $ref: "#/components/schemas/IzaTriageResult"
+        location:
+          $ref: "#/components/schemas/LocationRequest"
+
+    OmbudsmanUpdateRequest:
+      type: object
+      required: [currentStatus]
+      properties:
+        currentStatus:
+          $ref: "#/components/schemas/CaseStatus"
+        destinationAgencyId:
+          type: string
+          format: uuid
+          nullable: true
+        statusNote:
+          type: string
+          maxLength: 1000
+          nullable: true
+
+    OmbudsmanResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        protocolNumber:
+          type: string
+        category:
+          $ref: "#/components/schemas/CaseCategory"
+        description:
+          type: string
+        urgency:
+          $ref: "#/components/schemas/UrgencyLevel"
+        currentStatus:
+          $ref: "#/components/schemas/CaseStatus"
+        anonymous:
+          type: boolean
+        privacyConsent:
+          type: boolean
+        destinationAgencyId:
+          type: string
+          format: uuid
+          nullable: true
+        reporterIdentityId:
+          type: string
+          format: uuid
+          nullable: true
+        attachmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          description: "Campo presente no DTO; pode vir null dependendo do mapeamento atual."
+        statusHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusHistoryEntry"
+          nullable: true
+        izaTriageResult:
+          $ref: "#/components/schemas/IzaTriageResult"
+        location:
+          $ref: "#/components/schemas/LocationResponse"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PageOmbudsmanResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/OmbudsmanResponse"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
+
+    PageUserResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
