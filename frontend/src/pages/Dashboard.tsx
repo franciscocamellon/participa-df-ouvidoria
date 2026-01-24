@@ -3,13 +3,10 @@ import {
   BarChart3,
   TrendingUp,
   Clock,
-  CheckCircle,
   AlertCircle,
   MapPin,
-  Filter,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +15,6 @@ import { occurrenceCategories, occurrenceStatuses, urgencyLevels } from "@/confi
 import { useOccurrenceStore } from "@/stores/occurrenceStore";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const occurrences = useOccurrenceStore((state) => state.occurrences);
@@ -51,11 +47,11 @@ const Dashboard = () => {
       {} as Record<string, number>,
     );
 
-    const resolved = byStatus["concluido"] || 0;
-    const inProgress = (byStatus["triagem"] || 0) + (byStatus["encaminhado"] || 0) + (byStatus["execucao"] || 0);
-    const pending = byStatus["recebido"] || 0;
+    const resolved = byStatus["COMPLETED"] || 0;
+    const inProgress = (byStatus["TRIAGE"] || 0) + (byStatus["FORWARDED"] || 0) + (byStatus["IN_EXECUTION"] || 0);
+    const pending = byStatus["RECEIVED"] || 0;
     const resolutionRate = total > 0 ? ((resolved / total) * 100).toFixed(1) : "0";
-
+    console.log('resolutionRate:', resolutionRate)
     // Calculate average resolution time (mock data)
     const avgResolutionDays = 2.3;
 
@@ -160,6 +156,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-success">{stats.resolutionRate}%</div>
+
                 <p className="text-xs text-muted-foreground mt-1">{stats.resolved} ocorrências concluídas</p>
               </CardContent>
             </Card>
