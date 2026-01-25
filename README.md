@@ -8,14 +8,7 @@ O repositório foi montado para ser testável do zero via Docker Compose, com do
 
 ### Vídeo de demonstração (exigência do edital)
 
-**Reproduzir vídeo diretamente (repositório):**
-
-```html
-<video width="100%" height="auto" controls>
-  <source src="docs/videos/demo.mp4" type="video/mp4" />
-  Seu navegador não suporta reprodução de vídeo.
-</video>
-```
+[![Assistir ao vídeo](docs/images/thumb-demo.png)](docs/videos/demo.mp4)
 
 **Ou acessar via Google Drive** (se acima não carregar):  
 Link do vídeo: https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link
