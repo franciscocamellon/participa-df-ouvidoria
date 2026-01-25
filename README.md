@@ -1,284 +1,214 @@
 # Desafio Participa DF (CGDF) - Categoria Ouvidoria
-
 ## Participa DF Ouvidoria Mobile (PWA)
 
-Esta solução implementa uma versão **PWA mobile-first** para o Participa DF (Ouvidoria), com foco em **inclusão**, **multicanalidade**, **anonimato opcional**, **emissão automática de protocolo**, **consulta pública por protocolo** e **aderência às diretrizes de acessibilidade (WCAG 2.1 AA)**, conforme os requisitos do **Edital nº 10/2025 (1º Hackathon em Controle Social: Desafio Participa DF)**.
+Esta solução implementa uma versão PWA mobile-first para Ouvidoria com foco em inclusão, multicanalidade, anonimato opcional, emissão automática de protocolo, consulta pública por protocolo e aderência a acessibilidade (WCAG 2.1 AA), conforme o Edital nº 10/2025 (1º Hackathon em Controle Social - Desafio Participa DF).
 
-O repositório foi estruturado para ser **testável do zero** via Docker Compose, com documentação operacional e arquitetural suficiente para uma avaliação técnica objetiva, além de facilitar evolução e manutenção.
+O repositório foi montado para ser testável do zero via Docker Compose, com documentação e evidências técnicas (OpenAPI, Swagger UI, C4, ADRs, runbook) para facilitar avaliação e demonstrar maturidade de engenharia.
 
-### Vídeo de demonstração (obrigatório pelo edital)
+### Vídeo de demonstração (exigência do edital)
+Link do vídeo (até 7 minutos): **COLE_AQUI_O_LINK_PUBLICO**
 
-Link do vídeo (até 7 minutos): **COLE_AQUI_O_LINK_PUBLICO**  
-O vídeo deve demonstrar: fluxo completo de manifestação, uso de múltiplos canais (texto, áudio, imagem, vídeo) e recursos de acessibilidade.
-
----
-
-## Como esta proposta atende ao edital
-
-O edital, na categoria Ouvidoria, exige uma solução PWA com multicanalidade (texto, áudio, imagem, vídeo), emissão de protocolo, anonimato opcional, acessibilidade conforme WCAG e integração com a arquitetura do Participa DF e com a IA IZA (triagem).
-
-### Requisitos funcionais principais (Ouvidoria)
-
-A aplicação cobre os fluxos centrais do serviço de ouvidoria:
-
-- **Registro de manifestação** com dados essenciais e validações
-- **Envio anônimo opcional**, com diretrizes de minimização de dados
-- **Emissão automática de protocolo**
-- **Consulta pública por protocolo**, sem autenticação para o cidadão
-- **Linha do tempo de status** para rastreabilidade do atendimento
-- **Anexos multicanal**: texto, áudio gravado, upload de imagem e upload de vídeo
-- **Experiência mobile-first** e “instalável” como PWA
-
-### Acessibilidade (WCAG 2.1 AA)
-
-A solução inclui práticas de acessibilidade para melhorar inclusão e usabilidade, tais como:
-
-- navegação por teclado e foco visível nos fluxos principais
-- regiões ARIA para anúncios dinâmicos (ex.: confirmação, erros e feedback)
-- componentes acessíveis via Radix UI (base do shadcn/ui)
-- painel de acessibilidade (preferências como contraste e tamanho de fonte)
-- textos alternativos em imagens relevantes do layout
-
-Observação importante: WCAG 2.1 AA é uma meta de conformidade que deve ser verificada por inspeção manual e ferramentas automatizadas. Este repositório inclui base estrutural e componentes acessíveis para suportar essa validação.
+O vídeo deve demonstrar: fluxo completo de manifestação, uso de múltiplos canais (texto, áudio, imagem, vídeo), anonimato opcional e recursos de acessibilidade.
 
 ---
 
-## Arquitetura (C4 mínimo)
+## Por que esta proposta é competitiva para o edital
 
-A arquitetura está documentada em `docs/c4/` e as visões principais estão renderizadas em PNG para leitura imediata.
+A categoria Ouvidoria exige PWA com multicanalidade, protocolo, anonimato e acessibilidade, além de integração com a arquitetura do Participa DF e triagem inteligente (IZA). Este projeto entrega os requisitos de produto e, adicionalmente, evidencia nível técnico por meio de:
+
+1) Ambiente containerizado reproduzível, com healthchecks e dependências.
+2) Contrato de API formal (OpenAPI) e inspeção via Swagger UI.
+3) Persistência relacional com migrações versionadas (Flyway).
+4) Rastreabilidade com status atual e histórico de transições.
+5) Documentação profissional (C4 mínimo, ADRs, runbook, política de anonimato/LGPD e observabilidade mínima).
+
+---
+
+## Arquitetura (C4 mínimo) e evidências visuais
+
+As visões principais do C4 estão em PNG para leitura imediata.
 
 ![C4 Contexto](docs/images/rendered/contexto.png)
 
 ![C4 Containers](docs/images/rendered/containers.png)
 
-### Visão de implementação, destacando tecnologias reais do projeto
+O fluxo ponta a ponta do envio anônimo também está documentado em sequência.
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                  Frontend (PWA)                              │
-│                                                                              │
-│  UI e acessibilidade: shadcn/ui (Radix UI) + lucide-react + sonner            │
-│  Estilo: Tailwind CSS + tailwind-merge + class-variance-authority            │
-│  Roteamento: react-router-dom                                                 │
-│  Estado: zustand                                                             │
-│  Dados e cache: @tanstack/react-query                                         │
-│  Formulários e validação: react-hook-form + zod + @hookform/resolvers         │
-│  Mapa: mapbox-gl                                                              │
-│  PWA: prompt/gestão de instalação, comportamento offline (cache/queue)        │
-│                                                                              │
-│  Runtime: Nginx serve SPA/PWA e faz proxy same-origin para /api/*             │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                               Backend (API Ouvidoria)                        │
-│                                                                              │
-│  Linguagem: Java 21                                                          │
-│  Framework: Spring Boot (Web, Validation, Security)                           │
-│  Persistência: Spring Data JPA + PostgreSQL Driver                            │
-│  Migrações: Flyway                                                            │
-│  OpenAPI/Swagger UI: springdoc-openapi                                        │
-│  Observabilidade: Spring Boot Actuator                                        │
-│  DTO mapping: MapStruct                                                      │
-│  Autenticação: JWT (jjwt)                                                    │
-│                                                                              │
-│  Domínio: manifestação (ombudsman), status atual + histórico de status        │
-│  Anexos: persistência por URL/Key, evitando binário no banco                  │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                             Persistência e serviços externos                  │
-│                                                                              │
-│  Banco: PostgreSQL 16 (com migrações versionadas)                             │
-│  IZA (triagem): preparado no domínio e documentação para acoplar resultado    │
-│  Órgão destino: integração prevista por contrato e runbook                    │
-│  Storage de anexos: padrão S3/Blob/local documentado (URLs/Keys)              │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Nota sobre IZA (triagem)
-
-O edital menciona integração com a IA IZA. Este repositório já possui:
-
-- modelagem de domínio para armazenar resultado de triagem no caso
-- ADR de decisão sobre persistência do resultado (triagem embutida no registro principal)
-- contrato OpenAPI prevendo o campo de resultado/identificador de triagem no payload de criação
-
-A chamada direta ao serviço externo de triagem pode ser acoplada no backend ou no frontend, dependendo do modelo de integração disponibilizado pela organização. O projeto foi estruturado para manter esse acoplamento controlado e substituível.
+![Sequência - Envio de Notificação Anônima](docs/images/rendered/seq-envio-notificacao-anonima.png)
 
 ---
 
-## Fluxo principal (envio anônimo) e evidências
+## Orquestração técnica (Docker Compose) - evidência de execução
 
-O diagrama de sequência do envio anônimo está renderizado em PNG para facilitar inspeção durante a avaliação.
+O projeto sobe uma pilha completa com serviços separados (containers), com dependências e healthchecks para reduzir atrito na avaliação.
 
-![Sequência: Envio de Notificação Anônima](docs/images/rendered/seq-envio-notificacao-anonima.png)
+### Serviços no Docker Compose
 
-Resumo do comportamento esperado:
+- `postgres-ombudsman` (PostgreSQL 16) em `localhost:5433`
+- `backend` (API Java 21 + Spring Boot) em `localhost:8080`
+- `frontend` (PWA Vite/React servido via Nginx) em `localhost:8081`
+- `pgadmin` (administração do banco) em `localhost:5050`
 
-- o cidadão cria uma manifestação podendo marcar como anônima
-- a aplicação valida campos obrigatórios e registra localização quando aplicável
-- anexos podem ser adicionados (imagem, áudio, vídeo)
-- o backend registra o caso, gera protocolo, registra status inicial e retorna `201`
-- o cidadão acompanha o andamento por protocolo sem autenticação
+Observações de engenharia:
+- O compose define `name: pdo`, então no Docker Desktop os serviços aparecem agrupados como `pdo`.
+- `backend` depende do banco ficar saudável (`service_healthy`).
+- `frontend` depende do backend ficar saudável.
+- Existem healthchecks no banco, backend e frontend para facilitar diagnóstico.
 
----
+### Subir o ambiente completo (recomendado para avaliadores)
 
-## Como rodar e testar (avaliadores)
-
-### Pré-requisitos
-
+Pré-requisitos:
 - Docker
-- Docker Compose
+- Docker Compose (v2)
 
-### Subir o ambiente completo
-
-Na raiz do repositório:
+Comando:
 
 ```bash
 cp .env.compose .env
 docker compose up --build
 ```
 
-### Serviços e portas
+Verificar status dos containers:
 
-- Frontend (PWA via Nginx): http://localhost:8081
-- Backend (API Spring Boot): http://localhost:8080
-- PostgreSQL: localhost:5433
-- pgAdmin (opcional): http://localhost:5050
+```bash
+docker compose ps
+```
 
-### Healthchecks rápidos
+Ver logs do backend (útil para avaliação técnica):
 
-- Front: `GET http://localhost:8081/health`
-- Backend: `GET http://localhost:8080/actuator/health`
+```bash
+docker compose logs -f backend
+```
 
-### Roteamento e proxy (same-origin)
+Encerrar:
 
-O Nginx do frontend encaminha:
-
-- `/api/*` para `backend:8080`
-- `/swagger-ui/*` para `backend:8080`
-- `/v3/api-docs/*` para `backend:8080`
-- `/actuator/*` para `backend:8080`
-
-Isso reduz atrito na avaliação, pois evita CORS no uso local e permite abrir UI e API sob o mesmo host.
+```bash
+docker compose down
+```
 
 ---
 
-## Roteiro de teste em até 7 minutos (sugestão para o vídeo)
+## Rotas, portas e proxy (mesmo origin)
 
-1. abrir o PWA em modo responsivo (simulando celular)
-2. iniciar “Nova manifestação”
-3. preencher descrição e campos principais
-4. marcar como anônima
-5. selecionar localização no mapa
-6. anexar um áudio gravado e uma imagem (e opcionalmente um vídeo)
-7. enviar e capturar o protocolo gerado
-8. abrir a tela de consulta por protocolo e confirmar o status e a linha do tempo
-9. demonstrar 2 pontos de acessibilidade: navegação por teclado, anúncios ARIA e painel de acessibilidade
+O frontend roda em `http://localhost:8081` (Nginx) e encaminha requisições de API sob `/api/*` para o backend em `http://localhost:8080`.
+
+Isso é importante para avaliação do hackathon porque:
+- evita CORS no uso local
+- simula uma experiência real (PWA e API sob o mesmo host)
+- facilita abrir Swagger e endpoints sem configuração extra
 
 ---
 
-## API (contrato e endpoints principais)
+## API, OpenAPI e Swagger UI (prova técnica)
 
-A especificação OpenAPI está em `docs/api/openapi.yaml`.
+A especificação OpenAPI fonte está em `docs/api/openapi.yaml` e deve refletir o contrato real de backend.
 
-- Swagger UI (local): http://localhost:8080/swagger-ui/index.html
-- OpenAPI JSON (local): http://localhost:8080/v3/api-docs
+### Acessos locais (após subir com Docker)
+- API base (direto no backend): http://localhost:8080/api
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+- Health (Actuator): http://localhost:8080/actuator/health
 
-Principais endpoints:
-
+### Endpoints principais para demonstrar no vídeo e na avaliação
 - Criar manifestação: `POST /api/v1/ombudsmans`
 - Consultar por protocolo (público): `GET /api/v1/ombudsmans/by-protocol/{protocolNumber}`
-- Atualizar status: `PATCH /api/v1/ombudsmans/{id}/status`
-- Auth (operador): `/api/v1/auth/*`
-- Usuários (operador): `/api/v1/users/*`
+- Auth (operador): `POST /api/v1/auth/login`
+- (Opcional) Atualizar status: `PATCH /api/v1/ombudsmans/{id}/status`
 
 ---
 
-## Banco de dados e migrações
+## Banco de dados, migrações e pgAdmin (prova de persistência)
 
-O PostgreSQL é inicializado via container e o backend aplica migrações automaticamente com Flyway.
+O banco é inicializado em container e o backend aplica migrações automaticamente com Flyway.
 
-- migrações estão versionadas e devem ser tratadas como “forward-only”
-- anexos são armazenados por referência (URL/Key) e não como binário no banco
+### Migrações (Flyway)
+- Local: `backend/src/main/resources/db/migration/`
+- As migrações criam tabelas e também fazem seed de usuários de teste.
 
----
+### Credenciais do banco (ambiente local)
+Usuário do banco:
+- host: `localhost`
+- porta: `5433`
+- database: `ombudsman_db`
+- usuário: `ombudsman_user`
+- senha: `ombudsman_pass`
 
-## Privacidade, anonimato e LGPD (ponto forte)
+Esses valores são definidos no `.env.compose` e usados no compose para o container do Postgres.
 
-Uma proposta competitiva para ouvidoria precisa reduzir risco de reidentificação e evitar coleta excessiva.
+### pgAdmin
+- URL: http://localhost:5050
+- login: `admin@example.com`
+- senha: `admin`
 
-Este repositório inclui política e decisões arquiteturais para:
-
-- minimizar dados pessoais quando `anonymous=true`
-- separar anexos do banco, persistindo somente referência
-- evitar logging de payloads e URLs sensíveis
-- orientar retenção e auditoria de eventos relevantes
-
-Documentos relacionados:
-
-- `docs/security/politica-anonimato-lgpd.md`
-- `docs/adr/0002-anonimato-e-minimizacao-de-dados.md`
-- `docs/adr/0005-anexos-por-url-key-e-storage-fora-do-banco.md`
-
----
-
-## Observabilidade e operação (runbook)
-
-Para avaliação técnica e sustentabilidade, o projeto inclui:
-
-- observabilidade mínima com Actuator e padrões de log
-- runbook com sintomas, diagnóstico e mitigação
-- ADRs explicando decisões e tradeoffs
-
-Documentos relacionados:
-
-- `docs/observability/observabilidade-basica.md`
-- `docs/runbook/runbook.md`
-- `docs/adr/`
+O pgAdmin já vem pré-configurado com um servidor apontando para `postgres-ombudsman` usando `ombudsman_user`, para reduzir fricção na avaliação.
 
 ---
 
-## Estrutura de pastas
+## Usuários de teste (para demonstrar login e perfis)
 
-```text
-.
-├── frontend/                 # PWA (Vite + React + TS) + Nginx runtime
-├── backend/                  # API (Java 21 + Spring Boot)
-├── db/                       # scripts e artefatos auxiliares de banco
-├── docker-compose.yml        # orquestração local
-├── docs/                     # documentação do projeto (C4, ADR, OpenAPI, runbook)
-│   ├── c4/
-│   ├── api/
-│   ├── domain/
-│   ├── security/
-│   ├── observability/
-│   ├── runbook/
-│   └── images/rendered/      # PNGs renderizados (C4, sequência, etc.)
-└── .env.compose              # exemplo de variáveis de ambiente
-```
+O projeto semeia usuários de teste via migrações SQL. Use estes usuários somente para demonstração local.
+
+- Administrador (perfil ADMIN):
+  - email: `admin@softkit.local`
+  - senha: `Admin@123!`
+
+- Usuária cidadã (perfil CUSTOMER):
+  - email: `maria@softkit.local`
+  - senha: `Maria@123!`
+
+- Operador/agente (perfil AGENT):
+  - email: `joao@softkit.local`
+  - senha: `Joao@123!`
+
+Recomendação para ambiente real:
+- trocar senhas, segredos e tokens imediatamente
+- nunca reutilizar estes seeds fora do contexto do hackathon
+
+---
+
+## Checklist do que demonstrar no vídeo (7 minutos, máximo)
+
+1) Abrir o PWA e iniciar uma nova manifestação.
+2) Marcar envio anônimo e destacar minimização de dados.
+3) Selecionar localização no mapa.
+4) Anexar evidências (imagem e áudio, e opcionalmente vídeo).
+5) Enviar e mostrar o protocolo gerado.
+6) Acompanhar por protocolo (sem login) e mostrar status/histórico.
+7) Demonstrar 2 itens de acessibilidade (teclado, foco visível, componentes acessíveis e painel de acessibilidade).
+8) Mostrar rapidamente o nível técnico:
+   - Docker Desktop com os containers rodando (pdo: postgres, backend, frontend, pgadmin)
+   - Swagger UI aberto com endpoints (e opcionalmente um "Try it out" no POST e no GET por protocolo)
+
+---
+
+## Documentação do projeto
+
+- C4: `docs/c4/` e `docs/images/rendered/`
+- ADRs: `docs/adr/`
+- OpenAPI: `docs/api/openapi.yaml`
+- State machine de status: `docs/domain/state-machine-status.md`
+- Política de anonimato e LGPD: `docs/security/politica-anonimato-lgpd.md`
+- Runbook: `docs/runbook/runbook.md`
+- Observabilidade mínima: `docs/observability/observabilidade-basica.md`
+
+Requisitos de ambiente e hardware:
+- `REQUIREMENTS.md`
 
 ---
 
 ## Uso de Inteligência Artificial (transparência)
 
-O edital permite uso de IA desde que documentado.
-
-Se houve uso de IA no desenvolvimento, documentar aqui:
-
-- modelos utilizados
-- bibliotecas e serviços
-- finalidade (ex.: apoio a prototipagem, geração de documentação, revisão de código)
-- cuidados adotados (privacidade, ausência de dados pessoais reais, validação humana)
+O edital permite uso de IA desde que documentado. Se IA foi utilizada, registrar aqui:
+- quais ferramentas/modelos
+- em qual etapa (protótipo, documentação, revisão)
+- quais cuidados (sem dados pessoais reais, validação humana, revisão de segurança)
 
 ---
 
 ## Licença
-
-MIT, quando o arquivo `LICENSE` estiver presente no repositório.
+MIT (quando presente no arquivo `LICENSE`).
 
 ---
 
 ## Contato
-
-Para dúvidas e melhorias, abrir issue no repositório.
+Para dúvidas e melhorias, abra uma issue no repositório.
