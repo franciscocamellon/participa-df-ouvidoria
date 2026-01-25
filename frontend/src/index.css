@@ -139,6 +139,19 @@
 }
 
 /* ============================================
+   MAPBOX - USER LOCATION MARKER
+   ============================================ */
+
+.user-location-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgb(59, 130, 246); /* blue-500 */
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.25);
+}
+
+/* ============================================
    ACCESSIBILITY MODE OVERRIDES
    ============================================ */
 
@@ -169,6 +182,79 @@ html.a11y-high-contrast *:focus-visible {
   outline-offset: 3px !important;
 }
 
+/* ============================================
+   ACCESSIBILITY TOOLS (GDF-inspired)
+   ============================================ */
+
+/* Sublinha links para facilitar identificação */
+html.a11y-underline-links a[href] {
+  text-decoration: underline !important;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 2px;
+}
+
+/* Fonte otimizada para legibilidade */
+html.a11y-font-atkinson body {
+  font-family: 'Atkinson Hyperlegible', 'Source Sans 3', 'Inter', system-ui, sans-serif;
+}
+
+html.a11y-font-atkinson h1,
+html.a11y-font-atkinson h2,
+html.a11y-font-atkinson h3,
+html.a11y-font-atkinson h4,
+html.a11y-font-atkinson h5,
+html.a11y-font-atkinson h6 {
+  font-family: 'Atkinson Hyperlegible', 'Inter', 'Source Sans 3', system-ui, sans-serif;
+}
+
+/* Filtros visuais: invert/grayscale/saturação reduzida (aplicados via variável) */
+html.a11y-invert {
+  --a11y-visual-filter: invert(1) hue-rotate(180deg);
+}
+
+html.a11y-grayscale {
+  --a11y-visual-filter: grayscale(1);
+}
+
+html.a11y-low-saturation {
+  --a11y-visual-filter: saturate(0.35);
+}
+
+/* Esconder imagens e mídias pesadas sem quebrar ícones SVG do UI */
+html.a11y-hide-images main img:not([data-keep-media]),
+html.a11y-hide-images main picture:not([data-keep-media]),
+html.a11y-hide-images main video:not([data-keep-media]),
+html.a11y-hide-images main canvas:not([data-keep-media]) {
+  display: none !important;
+}
+
+/* Forçar redução de movimento independentemente do prefers-reduced-motion */
+html.a11y-reduce-motion-force {
+  scroll-behavior: auto !important;
+}
+
+html.a11y-reduce-motion-force *,
+html.a11y-reduce-motion-force *::before,
+html.a11y-reduce-motion-force *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+html.a11y-reduce-motion-force *:focus-visible {
+  animation: none !important;
+}
+
+/* Modo de leitura: layout mais calmo e com largura de leitura */
+html.a11y-reading-mode main {
+  max-width: 52rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+html.a11y-reading-mode .card-hover {
+  transform: none !important;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -183,8 +269,10 @@ html.a11y-high-contrast *:focus-visible {
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif;
-    /* Minimum readable line height */
-    line-height: 1.5;
+    /* Preferências de acessibilidade (com fallback seguro) */
+    line-height: var(--a11y-line-height, 1.5);
+    letter-spacing: var(--a11y-letter-spacing, normal);
+    filter: var(--a11y-visual-filter, none);
   }
 
   h1, h2, h3, h4, h5, h6 {

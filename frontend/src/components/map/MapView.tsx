@@ -36,6 +36,7 @@ export function MapView() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const userLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   const [isMapReady, setIsMapReady] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -112,6 +113,9 @@ export function MapView() {
     });
 
     return () => {
+      userLocationMarkerRef.current?.remove();
+      userLocationMarkerRef.current = null;
+
       map.current?.remove();
       map.current = null;
     };
@@ -207,22 +211,49 @@ export function MapView() {
   }, []);
 
   const handleGeolocate = useCallback(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          map.current?.flyTo({
-            center: [position.coords.longitude, position.coords.latitude],
-            zoom: 16,
-            duration: 1500,
-          });
-        },
-        () => {
-          toast.error("Não foi possível obter sua localização.");
-        },
-      );
-    } else {
-      toast.error("Geolocalização não suportada pelo navegador.");
+    if (!map.current) {
+      toast.info("Mapa ainda carregando.");
+      return;
     }
+
+    if (!("geolocation" in navigator)) {
+      toast.error("Geolocalização não suportada pelo navegador.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lngLat: [number, number] = [position.coords.longitude, position.coords.latitude];
+
+        map.current?.flyTo({
+          center: lngLat,
+          zoom: 16,
+          duration: 1500,
+        });
+
+        // Atualiza marcador se já existir
+        if (userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.setLngLat(lngLat);
+          return;
+        }
+
+        // Marcador visível (pino azul) para não passar despercebido no mobile
+        userLocationMarkerRef.current = new mapboxgl.Marker({
+          color: "#2563eb",
+          scale: 1.05,
+        })
+          .setLngLat(lngLat)
+          .addTo(map.current!);
+      },
+      (error) => {
+        if (error.code === 1) {
+          toast.error("Permissão de localização negada.");
+          return;
+        }
+        toast.error("Não foi possível obter sua localização.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
   }, []);
 
   const handleCloseModal = useCallback(() => {

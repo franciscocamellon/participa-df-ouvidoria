@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { OccurrenceCard } from "@/components/occurrence/OccurrenceCard";
-import { useOccurrencesQuery, updateOccurrenceStatus, occurrencesQueryKey } from "@/services/apiService";
+import { useOccurrencesQuery, updateOccurrenceStatus } from "@/services/apiService";
 import type { OccurrenceStatusId } from "@/types/occurrence";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,8 +33,6 @@ const MeusRegistros = () => {
   const userId = storedUser?.id ?? null;
   const isAgent = storedUser?.role === "AGENT" || storedUser?.role === "ADMIN";
   const queryClient = useQueryClient();
-  const page = 0;
-  const size = 100;
 
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -65,7 +63,9 @@ const MeusRegistros = () => {
 
   const handleStatusChange = async (occurrenceId: string, newStatus: OccurrenceStatusId) => {
     await updateOccurrenceStatus(occurrenceId, newStatus);
-    await queryClient.invalidateQueries({ queryKey: occurrencesQueryKey(page, size) });
+    // Importante: o dashboard hidrata com outra paginação/tamanho (ex.: size=200).
+    // Invalidate amplo garante atualização de todas as views que usam qualquer variação de ["occurrences", ...].
+    await queryClient.invalidateQueries({ queryKey: ["occurrences"] });
   };
 
   return (

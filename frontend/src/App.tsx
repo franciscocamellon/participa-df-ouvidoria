@@ -7,6 +7,7 @@ import { OccurrencesHydrator } from "@/components/providers/OccurrencesHydrator"
 import { ConnectionBanner } from "@/components/ui/ConnectionBanner";
 import { SkipLink } from "@/components/ui/SkipLink";
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel";
+import { AcessibilidadeOverlays } from "@/components/a11y/AcessibilidadeOverlays";
 import { AriaLiveProvider } from "@/components/ui/AriaLiveRegion";
 import { PwaInstallPromptManager } from "@/components/pwa/PwaInstallPromptManager";
 import Index from "./pages/Index";
@@ -48,6 +49,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ConnectionBanner />
+        <AcessibilidadeOverlays />
         <AccessibilityPanel />
         <PwaInstallPromptManager />
         <BrowserRouter>
