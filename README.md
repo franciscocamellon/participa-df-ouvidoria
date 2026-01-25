@@ -1,4 +1,5 @@
 # Desafio Participa DF (CGDF) - Categoria Ouvidoria
+
 ## Participa DF Ouvidoria Mobile (PWA)
 
 Esta solução implementa uma versão PWA mobile-first para Ouvidoria com foco em inclusão, multicanalidade, anonimato opcional, emissão automática de protocolo, consulta pública por protocolo e aderência a acessibilidade (WCAG 2.1 AA), conforme o Edital nº 10/2025 (1º Hackathon em Controle Social - Desafio Participa DF).
@@ -6,9 +7,20 @@ Esta solução implementa uma versão PWA mobile-first para Ouvidoria com foco e
 O repositório foi montado para ser testável do zero via Docker Compose, com documentação e evidências técnicas (OpenAPI, Swagger UI, C4, ADRs, runbook) para facilitar avaliação e demonstrar maturidade de engenharia.
 
 ### Vídeo de demonstração (exigência do edital)
-Link do vídeo (até 7 minutos): **COLE_AQUI_O_LINK_PUBLICO**
 
-O vídeo deve demonstrar: fluxo completo de manifestação, uso de múltiplos canais (texto, áudio, imagem, vídeo), anonimato opcional e recursos de acessibilidade.
+**Reproduzir vídeo diretamente (repositório):**
+
+```html
+<video width="100%" height="auto" controls>
+  <source src="docs/videos/demo.mp4" type="video/mp4" />
+  Seu navegador não suporta reprodução de vídeo.
+</video>
+```
+
+**Ou acessar via Google Drive** (se acima não carregar):  
+Link do vídeo: https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link
+
+**O que o vídeo demonstra:** fluxo completo de manifestação, uso de múltiplos canais (texto, áudio, imagem, vídeo), anonimato opcional e recursos de acessibilidade.
 
 ---
 
@@ -16,11 +28,11 @@ O vídeo deve demonstrar: fluxo completo de manifestação, uso de múltiplos ca
 
 A categoria Ouvidoria exige PWA com multicanalidade, protocolo, anonimato e acessibilidade, além de integração com a arquitetura do Participa DF e triagem inteligente (IZA). Este projeto entrega os requisitos de produto e, adicionalmente, evidencia nível técnico por meio de:
 
-1) Ambiente containerizado reproduzível, com healthchecks e dependências.
-2) Contrato de API formal (OpenAPI) e inspeção via Swagger UI.
-3) Persistência relacional com migrações versionadas (Flyway).
-4) Rastreabilidade com status atual e histórico de transições.
-5) Documentação profissional (C4 mínimo, ADRs, runbook, política de anonimato/LGPD e observabilidade mínima).
+1. Ambiente containerizado reproduzível, com healthchecks e dependências.
+2. Contrato de API formal (OpenAPI) e inspeção via Swagger UI.
+3. Persistência relacional com migrações versionadas (Flyway).
+4. Rastreabilidade com status atual e histórico de transições.
+5. Documentação profissional (C4 mínimo, ADRs, runbook, política de anonimato/LGPD e observabilidade mínima).
 
 ---
 
@@ -50,6 +62,7 @@ O projeto sobe uma pilha completa com serviços separados (containers), com depe
 - `pgadmin` (administração do banco) em `localhost:5050`
 
 Observações de engenharia:
+
 - O compose define `name: pdo`, então no Docker Desktop os serviços aparecem agrupados como `pdo`.
 - `backend` depende do banco ficar saudável (`service_healthy`).
 - `frontend` depende do backend ficar saudável.
@@ -58,6 +71,7 @@ Observações de engenharia:
 ### Subir o ambiente completo (recomendado para avaliadores)
 
 Pré-requisitos:
+
 - Docker
 - Docker Compose (v2)
 
@@ -93,6 +107,7 @@ docker compose down
 O frontend roda em `http://localhost:8081` (Nginx) e encaminha requisições de API sob `/api/*` para o backend em `http://localhost:8080`.
 
 Isso é importante para avaliação do hackathon porque:
+
 - evita CORS no uso local
 - simula uma experiência real (PWA e API sob o mesmo host)
 - facilita abrir Swagger e endpoints sem configuração extra
@@ -104,12 +119,14 @@ Isso é importante para avaliação do hackathon porque:
 A especificação OpenAPI fonte está em `docs/api/openapi.yaml` e deve refletir o contrato real de backend.
 
 ### Acessos locais (após subir com Docker)
+
 - API base (direto no backend): http://localhost:8080/api
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 - Health (Actuator): http://localhost:8080/actuator/health
 
 ### Endpoints principais para demonstrar no vídeo e na avaliação
+
 - Criar manifestação: `POST /api/v1/ombudsmans`
 - Consultar por protocolo (público): `GET /api/v1/ombudsmans/by-protocol/{protocolNumber}`
 - Auth (operador): `POST /api/v1/auth/login`
@@ -122,11 +139,14 @@ A especificação OpenAPI fonte está em `docs/api/openapi.yaml` e deve refletir
 O banco é inicializado em container e o backend aplica migrações automaticamente com Flyway.
 
 ### Migrações (Flyway)
+
 - Local: `backend/src/main/resources/db/migration/`
 - As migrações criam tabelas e também fazem seed de usuários de teste.
 
 ### Credenciais do banco (ambiente local)
+
 Usuário do banco:
+
 - host: `localhost`
 - porta: `5433`
 - database: `ombudsman_db`
@@ -136,6 +156,7 @@ Usuário do banco:
 Esses valores são definidos no `.env.compose` e usados no compose para o container do Postgres.
 
 ### pgAdmin
+
 - URL: http://localhost:5050
 - login: `admin@example.com`
 - senha: `admin`
@@ -161,6 +182,7 @@ O projeto semeia usuários de teste via migrações SQL. Use estes usuários som
   - senha: `Joao@123!`
 
 Recomendação para ambiente real:
+
 - trocar senhas, segredos e tokens imediatamente
 - nunca reutilizar estes seeds fora do contexto do hackathon
 
@@ -168,14 +190,14 @@ Recomendação para ambiente real:
 
 ## Checklist do que demonstrar no vídeo (7 minutos, máximo)
 
-1) Abrir o PWA e iniciar uma nova manifestação.
-2) Marcar envio anônimo e destacar minimização de dados.
-3) Selecionar localização no mapa.
-4) Anexar evidências (imagem e áudio, e opcionalmente vídeo).
-5) Enviar e mostrar o protocolo gerado.
-6) Acompanhar por protocolo (sem login) e mostrar status/histórico.
-7) Demonstrar 2 itens de acessibilidade (teclado, foco visível, componentes acessíveis e painel de acessibilidade).
-8) Mostrar rapidamente o nível técnico:
+1. Abrir o PWA e iniciar uma nova manifestação.
+2. Marcar envio anônimo e destacar minimização de dados.
+3. Selecionar localização no mapa.
+4. Anexar evidências (imagem e áudio, e opcionalmente vídeo).
+5. Enviar e mostrar o protocolo gerado.
+6. Acompanhar por protocolo (sem login) e mostrar status/histórico.
+7. Demonstrar 2 itens de acessibilidade (teclado, foco visível, componentes acessíveis e painel de acessibilidade).
+8. Mostrar rapidamente o nível técnico:
    - Docker Desktop com os containers rodando (pdo: postgres, backend, frontend, pgadmin)
    - Swagger UI aberto com endpoints (e opcionalmente um "Try it out" no POST e no GET por protocolo)
 
@@ -192,6 +214,7 @@ Recomendação para ambiente real:
 - Observabilidade mínima: `docs/observability/observabilidade-basica.md`
 
 Requisitos de ambiente e hardware:
+
 - `REQUIREMENTS.md`
 
 ---
@@ -199,6 +222,7 @@ Requisitos de ambiente e hardware:
 ## Uso de Inteligência Artificial (transparência)
 
 O edital permite uso de IA desde que documentado. Se IA foi utilizada, registrar aqui:
+
 - quais ferramentas/modelos
 - em qual etapa (protótipo, documentação, revisão)
 - quais cuidados (sem dados pessoais reais, validação humana, revisão de segurança)
@@ -206,9 +230,11 @@ O edital permite uso de IA desde que documentado. Se IA foi utilizada, registrar
 ---
 
 ## Licença
+
 MIT (quando presente no arquivo `LICENSE`).
 
 ---
 
 ## Contato
+
 Para dúvidas e melhorias, abra uma issue no repositório.
