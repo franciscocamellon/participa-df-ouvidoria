@@ -8,10 +8,10 @@ O repositório foi montado para ser testável do zero via Docker Compose, com do
 
 ### Vídeo de demonstração (exigência do edital)
 
-[![Assistir ao vídeo](docs/images/thumb-demo.png)](https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link)
+[![Assistir ao vídeo](docs/images/thumb-demo.png)]([https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link](https://drive.google.com/file/d/1-3cN-RzytH2yIbDWCagfkE_yG8DDpkhN/view?usp=sharing))
 
 **Ou acessar via Google Drive** (se acima não carregar):  
-Link do vídeo: https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link
+Link do vídeo: [https://drive.google.com/file/d/1FQ8QwlLGU3a_36CVyeZ9YjmFPTy8gXPM/view?usp=drive_link](https://drive.google.com/file/d/1-3cN-RzytH2yIbDWCagfkE_yG8DDpkhN/view?usp=sharing)
 
 **O que o vídeo demonstra:** fluxo completo de manifestação, uso de múltiplos canais (texto, áudio, imagem, vídeo), anonimato opcional e recursos de acessibilidade.
 
