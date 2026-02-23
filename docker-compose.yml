@@ -73,7 +73,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8081}
-        VITE_MAPBOX_ACCESS_TOKEN: ${VITE_MAPBOX_ACCESS_TOKEN:-pk.eyJ1IjoiamVhbmFsdmFyZXplIiwiYSI6ImNtaXY3Z3ZxbjF3NzIzZXEyNHViaHhidHgifQ.Pd4zhq5CF-0oPS5mW-NN9Q}
+        VITE_MAPBOX_ACCESS_TOKEN: ${VITE_MAPBOX_ACCESS_TOKEN:-Your API key comes here}
     container_name: pdo-frontend
     ports:
       - "8081:80"
